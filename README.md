@@ -2,9 +2,9 @@
 
 Design 3D-printed [Gridfinity](https://gridfinity.xyz/) organizers for your drawers, offline and without CAD. Measure a drawer with a tape measure (inches with fractions, or millimeters!), and SectorTray fits the grid to it, splits the baseplate into pieces your 3D printer can handle, lets you lay out bins and trays, then sends the parts to your slicer.
 
-It runs entirely on your PC. No account is needed, nothing is uploaded to any cloud, and there isn't any telemetry of any kind.
+SectorTray is offline. No account is needed, nothing is uploaded to any cloud, and there isn't any telemetry of any kind.
 
-![The Layout screen: bins placed on a kitchen drawer's grid](guide/img/layout.png)
+![Four SectorTray screens: a bin with its 3D preview, the drawer planner splitting the baseplate for the printer bed, bins laid out in a drawer, and the Print List](guide/img/overview.webp)
 
 ## Download and install (Windows only at this time)
 
