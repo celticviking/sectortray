@@ -1,0 +1,211 @@
+/* SectorTray app additions: pieces the design handoff didn't cover.
+   Built only on tokens.css semantic tokens so every skin/theme applies. */
+
+/* `hidden` must win over component display rules (e.g. .st-cards { display: grid }). */
+[hidden] { display: none !important; }
+
+/* ---- Dialog (rename, delete, new drawer) ---- */
+.st-dialog {
+  padding: 0; border: 0; background: transparent; color: var(--st-color-text);
+  width: min(440px, calc(100vw - 32px)); max-width: none;
+}
+.st-dialog::backdrop { background: rgba(0, 0, 0, .55); }
+.st-dialog > .st-panel { box-shadow: var(--st-elev-3); }
+.st-dialog .st-panel__body { display: flex; flex-direction: column; gap: 14px; }
+.st-dialog__text { font-size: var(--st-text-md); line-height: 1.5; color: var(--st-color-text-2); }
+.st-dialog__text b { color: var(--st-color-text); }
+.st-dialog__error { font-size: var(--st-text-sm); color: var(--st-color-error); }
+.st-dialog__error:empty { display: none; }
+.st-dialog__foot { display: flex; justify-content: flex-end; gap: 8px; }
+.st-dialog .st-field__input { font-family: var(--st-font-ui); font-size: var(--st-text-lg); }
+
+/* ---- Project cards with actions ---- */
+.st-card-wrap { position: relative; display: flex; }
+.st-card-wrap > .st-card { flex: 1; }
+.st-card__actions {
+  position: absolute; top: 10px; right: 10px; display: flex; gap: 6px;
+  opacity: 0; transition: opacity var(--st-dur-fast) var(--st-ease-out);
+}
+.st-card-wrap:hover .st-card__actions, .st-card-wrap:focus-within .st-card__actions { opacity: 1; }
+.st-card__actions .st-btn { background: var(--st-color-surface); }
+.st-card__unmeasured {
+  height: 100%; display: grid; place-items: center; text-align: center;
+  font-family: var(--st-font-mono); font-size: var(--st-text-xs); letter-spacing: var(--st-tracking-label);
+  text-transform: uppercase; color: var(--st-color-text-3);
+  border: 1px dashed var(--st-color-border);
+}
+
+/* ---- "Sample data" notice on screens not wired up yet ---- */
+.st-preview-note {
+  display: flex; align-items: center; gap: 10px; padding: 6px var(--st-layout-pad, 14px);
+  font-size: var(--st-text-sm); color: var(--st-color-text-2);
+  background: var(--st-color-surface-2); border-bottom: 1px solid var(--st-color-border);
+}
+.st-preview-note b { color: var(--st-color-warn); font-family: var(--st-font-mono); font-size: var(--st-text-xs); letter-spacing: .08em; text-transform: uppercase; }
+
+/* ---- Server unreachable ---- */
+.st-offline {
+  position: fixed; left: 50%; top: 72px; transform: translateX(-50%); z-index: var(--st-z-toast);
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; max-width: calc(100vw - 32px);
+  background: var(--st-color-surface); color: var(--st-color-text);
+  border: 1.5px solid var(--st-color-error); border-radius: var(--st-radius-control); box-shadow: var(--st-elev-3);
+  font-size: var(--st-text-md);
+}
+.st-offline[hidden] { display: none; }
+.st-offline .st-icon { color: var(--st-color-error); }
+
+/* ---- Buttons styled as cards (the "plan another drawer" tile) ---- */
+button.st-card--new { font: inherit; cursor: pointer; width: 100%; }
+
+/* ---- Planner before the drawer is measured ---- */
+#plan-empty { flex: 1; }
+
+/* ---- Small "saved" indicator ---- */
+.st-saved { font-family: var(--st-font-mono); font-size: var(--st-text-2xs); letter-spacing: .08em; text-transform: uppercase; color: var(--st-color-text-3); }
+.st-saved.is-error { color: var(--st-color-error); }
+
+/* ---- 3D viewport (three.js canvas under the handoff's overlay bars) ---- */
+.st-viewport__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.st-viewport.has-model .st-viewport__placeholder { display: none; }
+.st-viewport__bar { z-index: 1; }
+
+/* ---- Bin builder additions: name/qty editing, empty list ---- */
+.st-bin-edit { display: flex; flex-direction: column; gap: 10px; padding: 12px var(--st-panel-px); border-bottom: 1px solid var(--st-color-border); }
+.st-bin-edit__row { display: flex; align-items: center; gap: 10px; }
+.st-bin-edit__row .st-input { flex: 1; }
+.st-list__empty { padding: 14px var(--st-panel-px); font-size: var(--st-text-sm); color: var(--st-color-text-2); }
+.st-warn-text { color: var(--st-color-warn); font-weight: var(--st-weight-bold); }
+fieldset.st-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: contents; }
+.st-log { max-height: 50vh; overflow: auto; white-space: pre-wrap; font-family: var(--st-font-mono); font-size: var(--st-text-xs); color: var(--st-color-text-2); background: var(--st-color-field); padding: 10px; border-radius: var(--st-radius-control); }
+
+/* ---- Filament colour picker styled as a swatch ---- */
+.st-swatch-input { position: relative; flex: none; width: 28px; height: 28px; border: 1px solid var(--st-color-border); border-radius: var(--st-radius-chip); cursor: pointer; overflow: hidden; }
+.st-swatch-input input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+.st-swatch-input:focus-within { outline: 2px solid var(--st-color-focus); outline-offset: 2px; }
+
+/* ---- Print list: filament picker inside the material cell ---- */
+.st-select--bare { height: 28px; padding: 0 22px 0 6px; background-color: transparent; border-color: transparent; box-shadow: none; }
+.st-select--bare:hover, .st-select--bare:focus { border-color: var(--st-color-field-border); }
+
+/* ---- Tray drawing: where the two halves clip together ---- */
+.st-tray__cut-line { stroke: var(--st-color-accent); stroke-width: 1.6px; stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; }
+.st-tray__cut-text { font-family: var(--st-font-mono); font-size: 6.2px; font-weight: 700; letter-spacing: .04em; fill: var(--st-color-accent-text, var(--st-color-accent)); }
+
+/* ---- Desktop window (SectorTray.exe): the header is the title bar ---- */
+.st-desktop .st-header { app-region: drag; -webkit-app-region: drag; padding-right: 0; user-select: none; }
+.st-desktop .st-header a, .st-desktop .st-header button, .st-desktop .st-header select, .st-desktop .st-header input,
+.st-desktop .st-header label, .st-desktop .st-header .st-seg, .st-desktop .st-header .st-project-tag { app-region: no-drag; -webkit-app-region: no-drag; }
+.st-winctl { display: flex; align-self: stretch; margin-left: 6px; }
+.st-winctl__btn {
+  width: 46px; display: grid; place-items: center; border: 0; padding: 0; background: transparent; color: var(--st-color-text-2);
+  transition: background-color var(--st-dur-fast) var(--st-ease-out), color var(--st-dur-fast) var(--st-ease-out);
+}
+.st-winctl__btn svg { width: 10px; height: 10px; overflow: visible; }
+.st-winctl__btn path { fill: none; stroke: currentColor; stroke-width: 1; vector-effect: non-scaling-stroke; shape-rendering: crispEdges; }
+.st-winctl__btn:hover { background: var(--st-color-row-active); color: var(--st-color-text); }
+.st-winctl__btn:active { background: var(--st-color-surface-2); }
+.st-winctl__btn--close:hover, .st-winctl__btn--close:active { background: #c42b1c; color: #fff; }  /* Windows' own close red */
+.st-winctl__btn:focus-visible { outline: 2px solid var(--st-color-focus); outline-offset: -2px; }
+.st-desktop--inactive .st-winctl__btn, .st-desktop--inactive .st-brand { opacity: .6; }
+
+/* "?" hints placed by shell.js hintPlacement(): fixed to the window, kept inside its edges */
+.st-hint .st-hint__pop.is-placed { position: fixed; right: auto; bottom: auto; transform: translateY(4px); }
+.st-hint .st-hint__pop.is-placed.is-below { transform: translateY(-4px); }
+.st-hint:hover .st-hint__pop.is-placed, .st-hint:focus-within .st-hint__pop.is-placed, .st-hint.is-open .st-hint__pop.is-placed { transform: none; }
+
+/* Layout shelf: the bin's body selects it on the grid; double-click renames it in place */
+.st-shelf__main[data-pick] { border: 0; background: none; padding: 0; margin: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 2px; }
+.st-shelf__main[data-pick]:hover .st-shelf__title { text-decoration: underline; text-underline-offset: 3px; }
+.st-shelf__main[data-pick]:focus-visible { outline: 2px solid var(--st-color-accent); outline-offset: 3px; }
+.st-shelf__item.is-current { box-shadow: inset 3px 0 0 var(--st-color-accent); }
+.st-shelf__rename { flex: 1; width: 100%; min-width: 0; height: 28px; padding: 0 8px; font-weight: var(--st-weight-bold); }
+
+/* Bins page: print in pieces */
+.st-split { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px dashed var(--st-color-border); }
+.st-split__opts { display: flex; flex-direction: column; gap: 12px; }
+.st-split__opts[hidden], .st-split[hidden] { display: none; }
+.st-split__runs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.st-split__run { min-width: 34px; height: 30px; display: grid; place-items: center; padding: 0 8px; font-family: var(--st-font-mono); font-weight: var(--st-weight-bold); border: 1.5px solid var(--st-color-text-3); border-radius: var(--st-radius-chip); }
+.st-split__run.is-bad { border-color: var(--st-color-warn); color: var(--st-color-warn); }
+.st-split__cut { display: inline-flex; align-items: center; color: var(--st-color-text-3); font-size: 12px; }
+.st-split__cut .st-btn { padding: 0 6px; min-width: 0; }
+.st-split__notes { margin: 0; font-size: var(--st-text-sm); color: var(--st-color-warn); line-height: 1.4; }
+
+/* Layout: resize handles on the selected bin */
+.st-plan__edge { fill: transparent; }
+.st-plan__edge--n, .st-plan__edge--s { cursor: ns-resize; }
+.st-plan__edge--e, .st-plan__edge--w { cursor: ew-resize; }
+.st-plan__grip { fill: var(--st-color-bg); stroke: var(--st-color-accent); stroke-width: 1.5px; }
+.st-layout-plan.is-resizing, .st-layout-plan.is-resizing * { cursor: grabbing; }
+
+/* Fractions in small text: the handoff's .62em digits are ~7 px at 11 px; make them readable */
+.st-row__sub .st-frac__n, .st-row__sub .st-frac__d, .st-readout__sub .st-frac__n, .st-readout__sub .st-frac__d,
+.st-list__sub .st-frac__n, .st-list__sub .st-frac__d, .st-table__sub .st-frac__n, .st-table__sub .st-frac__d,
+.st-shelf__sub .st-frac__n, .st-shelf__sub .st-frac__d, .st-field__secondary .st-frac__n, .st-field__secondary .st-frac__d,
+.st-muted .st-frac__n, .st-muted .st-frac__d { font-size: .82em; }
+
+/* Print List: totals row */
+.st-table tr.is-total td { padding-top: 12px; padding-bottom: 12px; font-family: var(--st-font-mono); font-size: var(--st-text-xs); font-weight: var(--st-weight-bold); letter-spacing: var(--st-tracking-label); text-transform: uppercase; color: var(--st-color-text); border-top: 1.5px solid var(--st-color-text-3); }
+
+/* "PIP" = print in pieces: the skin's label-tape colours (yellow in Toolchest) */
+.st-pip { display: inline-flex; align-items: center; padding: 0 5px; height: 15px; border-radius: 2px; background: var(--st-color-tag-bg); color: var(--st-color-tag-fg); font-family: var(--st-tag-font); font-size: 10px; font-weight: var(--st-weight-bold); letter-spacing: .06em; vertical-align: 1px; }
+
+/* Print List: the exports folder path opens Explorer */
+.st-pathlink { border: 0; background: none; padding: 0; font: inherit; color: var(--st-color-text); text-decoration: underline; text-decoration-color: var(--st-color-text-3); text-underline-offset: 3px; cursor: pointer; word-break: break-all; text-align: left; }
+.st-pathlink:hover { text-decoration-color: var(--st-color-accent); }
+.st-pathlink:focus-visible { outline: 2px solid var(--st-color-accent); outline-offset: 2px; }
+
+/* Print List: printed marks */
+.st-printed { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 1.5px solid var(--st-color-text-3); border-radius: var(--st-radius-control); background: transparent; color: transparent; cursor: pointer; }
+.st-printed .st-icon { width: 16px; height: 16px; }
+.st-printed:hover { border-color: var(--st-color-ok); color: var(--st-color-text-3); }
+.st-printed.is-on { border-color: var(--st-color-ok); background: var(--st-color-ok); color: var(--st-color-bg, #000); }
+.st-printed.is-old, .st-printcount.is-old { border-color: var(--st-color-warn); }
+.st-printed.is-on.is-old { background: transparent; color: var(--st-color-warn); }
+.st-printed:focus-visible, .st-printcount button:focus-visible { outline: 2px solid var(--st-color-accent); outline-offset: 2px; }
+.st-printcount { display: inline-flex; align-items: stretch; height: 26px; border: 1.5px solid var(--st-color-text-3); border-radius: var(--st-radius-control); font-family: var(--st-font-mono); font-size: var(--st-text-sm); white-space: nowrap; }
+.st-printcount.is-on { border-color: var(--st-color-ok); }
+.st-printcount > span { display: flex; align-items: center; padding: 0 6px; }
+.st-printcount button { width: 24px; border: 0; padding: 0; background: transparent; color: var(--st-color-text-2); font: inherit; cursor: pointer; }
+.st-printcount button:hover:not(:disabled) { color: var(--st-color-text); background: var(--st-color-row-active); }
+.st-printcount button:disabled { opacity: .3; cursor: default; }
+.st-table tr.is-printed td:not(:nth-last-child(2)) { opacity: .55; }
+.st-total__action { margin-left: 12px; text-transform: none; letter-spacing: 0; font-weight: normal; font-family: var(--st-font-ui, inherit); color: var(--st-color-text-2); }
+
+/* Print List: filament estimates and plates */
+.st-total__sub { display: block; margin-top: 6px; font-family: var(--st-font-ui); font-weight: normal; text-transform: none; letter-spacing: 0; color: var(--st-color-text-2); }
+.st-total__sub .st-material__swatch { display: inline-block; vertical-align: -1px; }
+.st-plate { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.st-plate__part { white-space: nowrap; font-size: var(--st-text-sm); }
+
+/* Layout plan: the label tab's wall */
+.st-bin__tab { fill: var(--st-color-text); opacity: .55; pointer-events: none; }
+
+/* Bins page: several bins picked */
+.st-list__item.is-picked { background: var(--st-color-row-active); }
+.st-multi-note { margin: 0; padding: 10px var(--st-panel-px); font-size: var(--st-text-sm); line-height: 1.45; color: var(--st-color-text); background: var(--st-color-row-active); border-bottom: 1px solid var(--st-color-border); }
+.st-panel__tools { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.st-panel__tools .st-saved { margin-right: 6px; }
+/* Print List: Parts | Plates switch */
+.st-seg__count { margin-left: 4px; font-family: var(--st-font-mono); font-size: .82em; opacity: .7; }
+.st-page-head__actions > .st-seg { align-self: center; }
+/* Narrow windows (small laptops, high Windows scaling): the header gives up room in steps instead of making the
+   page scroll sideways. Skin and theme stay in Settings → Appearance. */
+@media (max-width: 1280px) { .st-header .st-header__label { display: none; } }
+@media (max-width: 1150px) { .st-header { gap: 12px; } .st-tab { padding: 0 9px; } .st-header .st-project-tag { max-width: 160px; } }
+@media (max-width: 1000px) { .st-header .st-seg--text[data-theme-mode] { display: none; } .st-header .st-project-tag { max-width: 110px; } .st-tab { padding: 0 7px; } }
+/* Fraction digits never smaller than 8.5 px (in small helper text .62em came out around 6.8 px) */
+.st-frac__n, .st-frac__d { font-size: max(.62em, 8.5px); }
+.st-row__sub .st-frac__n, .st-row__sub .st-frac__d, .st-readout__sub .st-frac__n, .st-readout__sub .st-frac__d,
+.st-list__sub .st-frac__n, .st-list__sub .st-frac__d, .st-table__sub .st-frac__n, .st-table__sub .st-frac__d,
+.st-shelf__sub .st-frac__n, .st-shelf__sub .st-frac__d, .st-field__secondary .st-frac__n, .st-field__secondary .st-frac__d,
+.st-muted .st-frac__n, .st-muted .st-frac__d { font-size: max(.82em, 8.5px); }
+/* Projects: the drawer's full name under its short label, when they differ */
+.st-card__name { display: block; font-size: var(--st-text-sm); font-weight: var(--st-weight-bold); color: var(--st-color-text); }
+
+/* Pages scroll inside .st-main, never the document: the desktop window (WebView2) doesn't move the header's
+   drag area when the document scrolls, so after a scroll the window couldn't be dragged until the next re-layout. */
+.st-app, .st-app--fixed { height: 100%; min-height: 0; }  /* 100% not 100vh: vh ignores the browser's CSS zoom (Text size) */
+.st-app > .st-main { overflow: auto; }
+.st-layout--settings > .st-col > section { scroll-margin-top: 18px; }
+.st-visually-hidden { top: 0; left: 0; }  /* else it sits just under the page and lets the document scroll 1 px */

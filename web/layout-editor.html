@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script src="js/st.js" defer></script>
+<script src="js/phase2.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app st-app--fixed">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  <span class="st-project-tag" hidden></span>
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html">Bins</a><a class="st-tab" href="layout-editor.html" aria-current="page">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+<div class="st-layout st-layout--planner">
+  <div class="st-col" style="overflow:auto">
+    <section class="st-panel" aria-labelledby="h-shelf">
+      <div class="st-panel__head"><span class="st-panel__num">3.1</span><h2 class="st-tag"><span id="h-shelf">Bin shelf</span></h2><span class="st-panel__aside" id="shelf-count"></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <ul class="st-shelf" id="shelf"></ul>
+      <div class="st-panel__foot"><a class="st-btn st-btn--sm st-btn--ghost" href="bin-builder.html" id="link-bins"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> New bin in Bins</a></div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">3.2</span><h2 class="st-tag">Fill a gap</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <p class="st-row__sub" style="font-size:var(--st-text-sm);line-height:1.45;color:var(--st-color-text)">Empty squares show as dotted sockets. <b>Drag across them</b> to select a gap, or <b>double-click</b> one to select the largest empty block around it. Then choose <b>Fill this gap</b> to make a bin that fits it exactly.</p>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><h2 class="st-tag">Keys</h2></div>
+      <div class="st-panel__body">
+        <div class="st-keys">
+          <span><span class="st-kbd">Tab</span> next bin</span>
+          <span><span class="st-kbd">←</span><span class="st-kbd">→</span><span class="st-kbd">↑</span><span class="st-kbd">↓</span> nudge</span>
+          <span><span class="st-kbd">Enter</span> pick up / drop</span>
+          <span><span class="st-kbd">R</span> turn</span>
+          <span><span class="st-kbd">Del</span> back to shelf</span>
+          <span><span class="st-kbd">Esc</span> cancel</span>
+          <span><span class="st-kbd">G</span> select a gap</span>
+          <span><span class="st-kbd">Ctrl</span>+click add to selection</span>
+          <span><span class="st-kbd">Shift</span>+click select a block</span>
+          <span><span class="st-kbd">Ctrl</span><span class="st-kbd">A</span> select all</span>
+          <span><span class="st-kbd">Ctrl</span><span class="st-kbd">C</span> <span class="st-kbd">Ctrl</span><span class="st-kbd">V</span> copy, paste</span>
+          <span><span class="st-kbd">Ctrl</span><span class="st-kbd">D</span> duplicate</span>
+          <span><span class="st-kbd">Shift</span><span class="st-kbd">R</span> turn back</span>
+          <span><span class="st-kbd">Ctrl</span><span class="st-kbd">Z</span> undo</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="st-panel st-panel--mat" aria-label="Drawer layout" style="position:relative">
+    <div class="st-panel__head">
+      <span class="st-panel__num">Fig. 3</span><h2 class="st-tag">Layout · top down</h2>
+      <div class="st-tools">
+        <button class="st-icon-btn" type="button" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-undo"/></svg></button>
+        <button class="st-icon-btn" type="button" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-redo"/></svg></button>
+        <div class="st-seg st-seg--text" role="group" aria-label="View" id="view">
+          <button class="st-seg__btn" type="button" aria-pressed="true" data-view="plan">Plan</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view="3d">3D</button>
+        </div>
+      </div>
+    </div>
+    <div class="st-layout-plan" id="plan" tabindex="0" aria-label="Drawer grid. Press G to select a gap." aria-describedby="announce"></div>
+    <div class="st-viewport" id="vp3d" hidden>
+      <div class="st-viewport__placeholder"><div class="st-viewport__note">Loading the 3D view…</div></div>
+      <div class="st-viewport__bar st-viewport__bar--top"><div class="st-seg st-seg--text" role="group" aria-label="View" id="lay3d-views"><button class="st-seg__btn" type="button" aria-pressed="true" data-view3="iso">Iso</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view3="top">Top</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view3="front">Front</button></div></div>
+      <div class="st-viewport__bar st-viewport__bar--bottom"><div class="st-render" id="lay3d-render" data-state="idle" role="status" aria-live="polite"><span class="st-render__dot"></span><span class="st-render__label">Not rendered</span><span class="st-render__time"></span><span class="st-render__bar"></span></div></div>
+    </div>
+    <div class="st-panel__foot st-legend" style="border-top:0" id="legend-plan">
+      <span class="st-legend__item"><span class="st-legend__swatch" style="border-style:dotted;border-color:var(--st-color-gap-cell)"></span>Empty square</span>
+      <span class="st-legend__item"><span class="st-legend__swatch" style="background:var(--st-color-ghost-ok-fill);border-style:dashed;border-color:var(--st-color-accent)"></span>Drop here</span>
+      <span class="st-legend__item"><span class="st-legend__swatch" style="border-color:var(--st-color-problem);background:repeating-linear-gradient(45deg,var(--st-color-problem-line) 0 1px,transparent 1px 4px)"></span>Problem</span>
+      <span class="st-legend__hint" id="snap-hint">Bins snap to whole 42 mm squares</span>
+    </div>
+    <div class="st-panel__foot st-legend" style="border-top:0" id="legend-3d" hidden>
+      <span class="st-legend__item">Baseplate and placed bins in their filament colors</span>
+      <span class="st-legend__hint">Drag to orbit · right-drag to pan · scroll to zoom</span>
+    </div>
+    <div class="st-gap-pop" id="gap-pop" hidden role="dialog" aria-label="Selected gap">
+      <span class="st-gap-pop__size" id="gap-size"></span>
+      <button class="st-btn st-btn--sm st-btn--primary" type="button" id="gap-fill"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-fill-gap"/></svg> Fill this gap</button>
+      <button class="st-icon-btn" type="button" id="gap-close" aria-label="Clear gap selection" style="width:28px;height:28px"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-close"/></svg></button>
+    </div>
+  </section>
+
+  <div class="st-col" style="overflow:auto">
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">3.3</span><h2 class="st-tag">Coverage</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-readout">
+        <div class="st-readout__hero"><span class="st-readout__label">Squares used</span><span class="st-readout__value" id="used"></span><span class="st-readout__sub" id="used-sub"></span><div class="st-meter" id="meter" aria-hidden="true"></div></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Bins placed</span><span class="st-readout__value" id="placed"></span><span class="st-readout__sub" id="placed-sub"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Unplaced</span><span class="st-readout__value" id="unplaced"></span><span class="st-readout__sub" id="unplaced-sub"></span></div>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">3.4</span><h2 class="st-tag">Problems</h2><span class="st-panel__aside" id="prob-count"></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <ul class="st-problems" id="problems"></ul>
+    </section>
+    <section class="st-panel" aria-live="polite">
+      <div class="st-panel__head"><span class="st-panel__num">3.5</span><h2 class="st-tag">Selected</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body" id="selected"></div>
+    </section>
+    <div class="st-btn-stack" style="margin-top:auto">
+      <a class="st-btn st-btn--primary st-btn--lg st-btn--split" href="print-list.html" id="link-print">Next: Print List <svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-chevron-right"/></svg></a>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+<div class="st-visually-hidden" aria-live="polite" id="announce"></div>
+<script>
+/* Layout editor: interaction model from design/handoff_v2/layout-editor.html, wired to the drawer's
+   bins (designs) and project.placements (copies). Layout maths stays client-side (ST.P2). */
+document.addEventListener('st:shell', function (ev) {
+  var project = ev.detail.project;
+  if (!project) { location.replace('projects.html?first=1'); return; }
+  var P2 = ST.P2, pid = encodeURIComponent(project.id), L = project.layout && !project.layout.error ? project.layout : null;
+  var el = document.getElementById('plan'), pop = document.getElementById('gap-pop');
+  ['link-bins', 'link-print'].forEach(function (id) { var a = document.getElementById(id); a.href = a.getAttribute('href') + '?p=' + pid; });
+  if (!L) {
+    el.innerHTML = '<div class="st-empty"><h2 class="st-empty__title">Measure the drawer first</h2><p class="st-empty__text">' +
+      (project.layout && project.layout.error ? ST.esc(project.layout.error) : 'The layout uses the drawer’s grid. Enter its width and depth in the Planner.') +
+      '</p><a class="st-btn st-btn--primary" href="planner.html?p=' + pid + '">Open the Planner</a></div>';
+    return;
+  }
+
+  var FILS = {}, DEF_FIL = null, TAB_DEFAULT = false, NEW_BINS = { lip: false, scoop: true, auto_split: true };
+  // sel = the bin you clicked last (focus, Shift+click anchor); set = every selected bin (Ctrl/Shift+click, Ctrl+A)
+  var S = { designs: [], placed: [], sel: null, set: [], anchor: null, ghost: null, ghosts: null, gap: null, lifted: null, liftedSet: null, carry: null, gapMode: null, view: 'plan' };
+  var hist = [], fut = [], drag = null, chip = null, focusKey = null, A = null;
+  var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+
+  function designOf(b) { return { id: b.id, name: b.name, w: b.w, d: b.d, u: b.h, qty: b.qty, fil: b.filament || DEF_FIL, kind: b.kind || 'bin', slots: b.slots, split: b.split, tab: b.kind !== 'tray' && !!b.label_tab && b.h >= 3 }; }
+  function loadFrom(doc) {
+    project = doc;
+    S.designs = doc.bins.map(designOf);
+    S.placed = (doc.placements || []).map(function (p) { return { key: p.key, design: p.bin, x: p.x, y: p.y, rot: P2.quarter(p) }; });
+  }
+
+  /* ---------------- saving: whatever render() shows is what gets saved ---------------- */
+  var saved = null, saveTimer = null;
+  function stateKey() { return JSON.stringify({ d: S.designs.map(function (d) { return [d.id, d.name, d.w, d.d, d.u, d.qty]; }), p: S.placed }); }
+  function queueSave() {
+    var k = stateKey();
+    if (k === saved) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { saveNow(k); }, 350);
+  }
+  function saveNow(k) {
+    saveTimer = null;
+    var ids = S.designs.map(function (d) { return d.id; });
+    var renamed = false;
+    var bins = project.bins.filter(function (b) { return ids.indexOf(b.id) >= 0; }).map(function (b) {
+      var d = D(b.id); if (d.name === b.name && d.w === b.w && d.d === b.d && d.qty === b.qty && JSON.stringify(d.split || null) === JSON.stringify(b.split || null)) return b;
+      renamed = true; return Object.assign({}, b, { name: d.name, w: d.w, d: d.d, qty: d.qty, split: d.split || null });  // renamed on the shelf / resized here
+    });
+    S.designs.forEach(function (d) {  // bins made here (Fill this gap, or split off when resizing one copy) are new until saved
+      if (bins.some(function (b) { return b.id === d.id; })) return;
+      var src = d.from && project.bins.filter(function (b) { return b.id === d.from; })[0];
+      bins.push(src ? Object.assign({}, src, { id: d.id, name: d.name, w: d.w, d: d.d, qty: d.qty, split: d.split || null })
+                    : { id: d.id, name: d.name, w: d.w, d: d.d, h: d.u, qty: d.qty, filament: null, split: d.split || null,
+                        label_tab: project.label_tabs != null ? project.label_tabs : TAB_DEFAULT, lip: !!NEW_BINS.lip, scoop: !!NEW_BINS.scoop });
+    });
+    var body = { placements: S.placed.map(function (p) { return { key: p.key, bin: p.design, x: p.x, y: p.y, rot: P2.quarter(p) }; }) };
+    if (renamed || bins.length !== project.bins.length || S.designs.some(function (d) { return d.isNew; })) body.bins = bins;
+    return ST.api('PATCH', 'projects/' + pid, body).then(function (doc) {
+      project = doc; saved = k;
+      S.designs.forEach(function (d) { delete d.isNewUnsaved; });
+    }, function (e) { ST.toast('Layout not saved: ' + ST.esc(e.message), 'error'); });
+  }
+  window.addEventListener('pagehide', function () {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer); saveNow(stateKey());
+  });
+  ST.onSaveNow(function () { if (!saveTimer) return; clearTimeout(saveTimer); return saveNow(stateKey()); });
+
+  function say(t) { var a = document.getElementById('announce'); a.textContent = ''; setTimeout(function () { a.textContent = t; }, 30); }
+  function snap() { hist.push(JSON.stringify({ d: S.designs, p: S.placed })); if (hist.length > 100) hist.shift(); fut = []; }
+  function restore(s) { var o = JSON.parse(s); S.designs = o.d; S.placed = o.p; S.set = S.set.filter(byKey); if (S.sel && !byKey(S.sel)) S.sel = S.set[S.set.length - 1] || null; }
+  function undo() { if (!hist.length) return; fut.push(JSON.stringify({ d: S.designs, p: S.placed })); restore(hist.pop()); render(); say('Undone.'); }
+  function redo() { if (!fut.length) return; hist.push(JSON.stringify({ d: S.designs, p: S.placed })); restore(fut.pop()); render(); say('Redone.'); }
+  function D(id) { return P2.design(S.designs, id); }
+  function byKey(k) { return S.placed.filter(function (p) { return p.key === k; })[0]; }
+  function nextKey(id) { var n = 1; while (byKey(id + '-' + n)) n++; return id + '-' + n; }
+  function label(p) { return P2.binLabel(p, S.designs); }
+  function selKeys() { var k = S.set.filter(byKey); return k.length ? k : (S.sel && byKey(S.sel) ? [S.sel] : []); }
+  function selectOnly(k) { S.sel = k || null; S.set = k ? [k] : []; S.anchor = k || null; }
+  function toggleSel(k) {
+    var keys = selKeys();
+    if (keys.indexOf(k) >= 0) { S.set = keys.filter(function (x) { return x !== k; }); S.sel = S.set[S.set.length - 1] || null; return false; }
+    S.set = keys.concat([k]); S.sel = k; S.anchor = k; return true;
+  }
+  function rangeSelect(k, add) {  // every bin inside the rectangle spanned by the anchor bin and this one
+    var a = S.anchor && byKey(S.anchor) ? S.anchor : (S.sel && byKey(S.sel) ? S.sel : k);
+    var ra = P2.rectOf(byKey(a), S.designs), rb = P2.rectOf(byKey(k), S.designs);
+    var x0 = Math.min(ra.x, rb.x), y0 = Math.min(ra.y, rb.y), x1 = Math.max(ra.x + ra.w, rb.x + rb.w), y1 = Math.max(ra.y + ra.d, rb.y + rb.d);
+    var inside = S.placed.filter(function (q) { var r = P2.rectOf(q, S.designs); return r.x >= x0 && r.y >= y0 && r.x + r.w <= x1 && r.y + r.d <= y1; }).map(function (q) { return q.key; });
+    var keys = add ? selKeys().concat(inside.filter(function (x) { return selKeys().indexOf(x) < 0; })) : inside;
+    S.set = keys; S.sel = k; S.anchor = a;
+    say(keys.length + ' bin' + (keys.length > 1 ? 's' : '') + ' selected.');
+  }
+  function lenPair(w, d) { return ST.pair(P2.sqMM(w), P2.sqMM(d, 'y')); }
+  function fit(d) { return d.kind === 'tray' ? null : ST.binFit(d.w, d.d, L.bed); }  // trays split into halves themselves
+  function pieces(d) { var p = d.kind === 'tray' ? null : ST.splitPlan({ kind: d.kind, w: d.w, d: d.d, split: d.split }, L.bed); return p && p.on ? p : null; }
+  function tooBig(d) { var f = fit(d), pc = pieces(d); return !!f && (pc ? !pc.fits : !f.ok); }  // printed in pieces that fit = fine
+  function fil(d) { return FILS[d.fil] || FILS[DEF_FIL] || { name: '—', type: '', color: '#888' }; }
+
+  /* Judge a target rectangle for a bin (or a new copy). bounce = refuse the drop. */
+  function judge(r, ignoreKey, designId) {
+    var others = S.placed.filter(function (p) { return p.key !== ignoreKey; });
+    var ox = [Math.max(0, -r.x), Math.max(0, r.x + r.w - L.nx)], oy = [Math.max(0, -r.y), Math.max(0, r.y + r.d - L.ny)];
+    var inW = Math.max(0, r.w - ox[0] - ox[1]), inD = Math.max(0, r.d - oy[0] - oy[1]), outA = r.w * r.d - inW * inD;
+    if (outA * 2 > r.w * r.d) return { ok: false, bounce: true, msg: 'Mostly off the grid' };
+    var hit = others.filter(function (p) { var q = P2.rectOf(p, S.designs); return r.x < q.x + q.w && q.x < r.x + r.w && r.y < q.y + q.d && q.y < r.y + r.d; });
+    if (hit.length) return { ok: false, msg: 'Overlaps ' + label(hit[0]) };
+    if (outA) return { ok: false, msg: 'Hangs ' + outA + ' square' + (outA > 1 ? 's' : '') + ' past the grid' };
+    if (L.binU != null && D(designId).u > L.binU) return { ok: false, msg: 'Too tall: ' + D(designId).u + 'u, drawer fits ' + L.binU + 'u' };
+    return { ok: true, msg: 'Column ' + (r.x + 1) + ', row ' + (r.y + 1) };
+  }
+
+  function cell(ev) { var svg = el.querySelector('svg'), pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; var p = pt.matrixTransform(svg.getScreenCTM().inverse()); return { x: (p.x - L.fx) / ST.PITCH[0], y: (p.y - L.fy) / ST.PITCH[1] }; }
+  function overPlan(ev) { var r = el.getBoundingClientRect(); return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom; }
+
+  function render() {
+    A = P2.analyzeLayout(L, S.placed, S.designs);
+    el.innerHTML = P2.layoutSVG(L, { A: A, designs: S.designs, placed: S.placed, sel: S.sel, selSet: selKeys(), ghost: S.ghost, ghosts: S.ghosts, gap: S.gap,
+      lifted: S.lifted, liftedSet: S.liftedSet, resize: !drag && !S.carry, id: 'lay', fils: FILS });
+    el.classList.toggle('is-gap-mode', !!S.gapMode);
+    if (focusKey) { var f = el.querySelector('[data-key="' + focusKey + '"]'); if (f) f.focus({ preventScroll: true }); else if (focusKey === '_plan') el.focus({ preventScroll: true }); }
+    shelf(); coverage(); problems(); selected(); gapPop();
+    document.getElementById('undo').disabled = !hist.length; document.getElementById('redo').disabled = !fut.length;
+    if (!drag) { queueSave(); if (S.view === '3d') { if (geomKey() !== last3d) schedule3d(); else if (vp) vp.setSelected(selKeys()); } }
+  }
+  function shelf() {
+    var html = S.designs.map(function (d) {
+      var u = A.unplaced.filter(function (x) { return x.id === d.id; })[0], f = fil(d), sc = 30 / Math.max(d.w, d.d, 5);
+      var curD = selKeys().some(function (k) { return byKey(k).design === d.id; });
+      return '<li class="st-shelf__item' + (u.left ? '' : ' is-done') + (curD ? ' is-current' : '') + '" data-design="' + d.id + '">' +
+        '<button class="st-shelf__grip" type="button" data-grip="' + d.id + '" aria-label="Drag ' + P2.esc(d.name) + ' onto the grid"' + (u.left ? '' : ' disabled') + '><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-drag"/></svg></button>' +
+        '<span class="st-shelf__mini" aria-hidden="true"><span style="width:' + Math.max(5, d.w * sc) + 'px;height:' + Math.max(5, d.d * sc) + 'px;background:' + f.color + '"></span></span>' +
+        (renaming === d.id ? '<span class="st-shelf__main"><span class="st-shelf__title"><input class="st-input st-shelf__rename" data-rename="' + d.id + '" maxlength="40" value="' + P2.esc(d.name) + '" aria-label="Bin name" autocomplete="off" spellcheck="false">' :
+         '<button class="st-shelf__main" type="button" data-pick="' + d.id + '" title="Click to select it on the grid · double-click (or F2) to rename"><span class="st-shelf__title">' + P2.esc(d.name)) + (d.kind === 'tray' ? ' <span class="st-kind"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg>Tray</span>' : '') + (d.isNew ? ' <span class="st-kind">New</span>' : '') + '</span>' +
+        '<span class="st-shelf__sub">' + d.w + '×' + d.d + ' · ' + d.u + 'u · <span class="st-swatch st-swatch--sm" style="width:10px;height:10px;background:' + f.color + '"></span>' + P2.esc(f.name) + ' ' + f.type + '</span>' +
+        '<span class="st-shelf__left">' + (u.left ? u.left + ' of ' + d.qty + ' left' : 'All ' + d.qty + ' placed') + (tooBig(d) ? ' · <span class="st-warn-text">too big to print</span>' : pieces(d) ? ' <span class="st-pip" title="Prints in ' + pieces(d).count + ' pieces because it\u2019s bigger than the bed\">In pieces</span>' : '') + '</span>' + (renaming === d.id ? '</span>' : '</button>') +
+        (u.left ? '<button class="st-btn st-btn--sm" type="button" data-place="' + d.id + '">Place</button>' : '<span></span>') + '</li>';
+    }).join('');
+    var sh = document.getElementById('shelf'), had = renaming && sh.querySelector('[data-rename]');
+    if (had) return;  // don't rebuild under the name being typed
+    sh.innerHTML = html || '<li class="st-list__empty">No bins yet. Make some in Bins, or drag across empty squares and choose Fill this gap.</li>';
+    var ri = renaming && sh.querySelector('[data-rename]'); if (ri) { ri.focus(); ri.select(); }
+    document.getElementById('shelf-count').textContent = !S.designs.length ? '' : A.unplacedCount ? A.unplacedCount + ' to place' : 'All placed';
+  }
+  function coverage() {
+    document.getElementById('used').textContent = A.used + ' / ' + A.total;
+    document.getElementById('used-sub').textContent = Math.round(A.used / A.total * 100) + '% of the ' + L.nx + ' × ' + L.ny + ' grid · ' + A.gaps.length + ' empty';
+    document.getElementById('meter').style.gridTemplateColumns = 'repeat(' + A.total + ',1fr)';
+    document.getElementById('meter').innerHTML = new Array(A.total + 1).join('.').split('').map(function (_, i) { return '<span' + (i < A.used ? ' class="is-on"' : '') + '></span>'; }).join('');
+    var total = S.designs.reduce(function (s, d) { return s + d.qty; }, 0);
+    document.getElementById('placed').textContent = S.placed.length;
+    document.getElementById('placed-sub').textContent = 'of ' + total + ' copies';
+    document.getElementById('unplaced').textContent = A.unplacedCount;
+    document.getElementById('unplaced-sub').textContent = A.unplacedCount ? A.unplaced.filter(function (u) { return u.left; }).map(function (u) { return D(u.id).name + ' ×' + u.left; }).join(', ') : 'Shelf is empty';
+  }
+  function problems() {
+    var items = [];
+    A.overlaps.forEach(function (o) { items.push({ key: o.a, t: label(byKey(o.a)) + ' overlaps ' + label(byKey(o.b)) + ' (' + o.rect.w * o.rect.d + ' square' + (o.rect.w * o.rect.d > 1 ? 's' : '') + ')' }); });
+    A.overhang.forEach(function (o) { items.push({ key: o.key, t: label(byKey(o.key)) + ' hangs ' + o.n + ' square' + (o.n > 1 ? 's' : '') + ' past the grid' }); });
+    A.tall.forEach(function (k) { var d = D(byKey(k).design); items.push({ key: k, t: label(byKey(k)) + ' is ' + d.u + 'u (' + d.u * 7 + ' mm). This drawer fits bins up to ' + L.binU + 'u.' }); });
+    S.designs.forEach(function (d) {
+      if (!tooBig(d)) return;
+      var f = fit(d), first = S.placed.filter(function (q) { return q.design === d.id; })[0];
+      items.push({ key: first && first.key, t: d.name + ' (' + d.w + ' × ' + d.d + ') is too big for the ' + f.bed + ' printer bed. The largest bin that fits is ' + f.largest + '. In Bins, turn on Print in pieces.' });
+    });
+    document.getElementById('problems').innerHTML = items.length ? items.map(function (i) { return i.key ? '<li><button class="st-problem" type="button" data-goto="' + i.key + '">' + P2.esc(i.t) + '</button></li>' : '<li class="st-problem" style="cursor:default">' + P2.esc(i.t) + '</li>'; }).join('') : '<li class="st-problems__ok">No problems. Every placed bin fits.</li>';
+    document.getElementById('prob-count').textContent = items.length ? items.length + ' to fix' : '';
+  }
+  function selected() {
+    var box = document.getElementById('selected'), keys = selKeys(), p = byKey(S.sel);
+    if (keys.length > 1) {
+      var squares = keys.reduce(function (n, k) { var z = P2.size(byKey(k), S.designs); return n + z.w * z.d; }, 0);
+      box.innerHTML = '<div class="st-row"><span class="st-row__title" style="font-size:var(--st-text-lg)">' + keys.length + ' bins selected</span><span class="st-muted">' + squares + ' squares</span></div>' +
+        '<p class="st-row__sub" style="font-size:var(--st-text-sm)">' + P2.esc(keys.map(function (k) { return label(byKey(k)); }).join(', ')) + '</p>' +
+        '<p class="st-row__sub" style="font-size:var(--st-text-sm)">Drag any of them to move them together, or nudge with the arrow keys.</p>' +
+        '<div class="st-btn-row"><button class="st-btn st-btn--sm" type="button" data-act="rotate"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-rotate"/></svg> Turn each <span class="st-kbd">R</span></button><button class="st-btn st-btn--sm" type="button" data-act="dup"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg> Duplicate <span class="st-kbd">Ctrl</span><span class="st-kbd">D</span></button><button class="st-btn st-btn--sm" type="button" data-act="remove">Back to shelf <span class="st-kbd">Del</span></button><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-act="clear">Clear <span class="st-kbd">Esc</span></button></div>';
+      return;
+    }
+    if (!p) { box.innerHTML = '<p class="st-row__sub" style="font-size:var(--st-text-sm)">Click a bin to select it, or Tab to move between bins. Ctrl+click or Shift+click to select several. Drag a selected bin’s edge to resize it.</p>'; return; }
+    var d = D(p.design), s = P2.size(p, S.designs), f = fil(d), st = A.byKey[p.key], probs = [];
+    if (st.over.length) probs.push('Overlaps ' + st.over.map(function (k) { return label(byKey(k)); }).join(', '));
+    if (st.hang) probs.push('Hangs ' + st.hang + ' square' + (st.hang > 1 ? 's' : '') + ' past the grid');
+    if (st.tall) probs.push(d.u + 'u is taller than the ' + L.binU + 'u this drawer fits');
+    if (tooBig(d)) probs.push('Too big for the ' + fit(d).bed + ' printer bed. The largest bin that fits is ' + fit(d).largest + '.');
+    box.innerHTML = '<div class="st-row"><span class="st-row__title" style="font-size:var(--st-text-lg)">' + P2.esc(label(p)) + '</span>' + (d.kind === 'tray' ? '<span class="st-kind"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg>Tray</span>' : '') + '</div>' +
+      '<div class="st-kv" style="grid-template-columns:90px 1fr">' +
+      '<span>Size</span><span><b class="st-num">' + s.w + ' × ' + s.d + '</b> <span class="st-muted">· ' + lenPair(s.w, s.d) + (P2.quarter(p) ? ' · turned ' + P2.quarter(p) + '°' : '') + '</span></span>' +
+      (d.tab ? '<span>Label tab</span><span>Faces the <b>' + FACES[P2.quarter(p)] + '</b> <span class="st-muted">· R turns it a quarter, Shift+R back</span></span>' : '') +
+      '<span>Height</span><span><b class="st-num">' + d.u + 'u</b> <span class="st-muted">· ' + ST.pri(d.u * 7) + (L.binU != null ? ' · drawer fits ' + L.binU + 'u' : '') + '</span></span>' +
+      '<span>Filament</span><span style="display:flex;align-items:center;gap:6px"><span class="st-swatch st-swatch--sm" style="background:' + f.color + '"></span>' + P2.esc(f.name) + ' · ' + f.type + '</span>' +
+      '<span>Position</span><span>Column ' + (p.x + 1) + ', row ' + (p.y + 1) + '</span></div>' +
+      (probs.length ? '<ul class="st-problems">' + probs.map(function (t) { return '<li class="st-problem" style="cursor:default">' + P2.esc(t) + '</li>'; }).join('') + '</ul>' : '') +
+      '<div class="st-btn-row"><button class="st-btn st-btn--sm" type="button" data-act="rotate"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-rotate"/></svg> Turn <span class="st-kbd">R</span></button><button class="st-btn st-btn--sm" type="button" data-act="dup"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg> Duplicate <span class="st-kbd">Ctrl</span><span class="st-kbd">D</span></button><button class="st-btn st-btn--sm" type="button" data-act="remove">Remove <span class="st-kbd">Del</span></button><a class="st-btn st-btn--sm st-btn--ghost" href="bin-builder.html?p=' + pid + '#' + d.id + '">Edit in Bins</a></div>';
+  }
+  function gapPop() {
+    var g = S.gap; if (!g || drag || S.view !== 'plan') { pop.hidden = true; return; }
+    var svg = el.querySelector('svg'), m = svg.getScreenCTM(), pt = svg.createSVGPoint(), cr = el.parentNode.getBoundingClientRect();
+    pt.x = L.fx + (g.x + g.w) * ST.PITCH[0]; pt.y = L.fy + g.y * ST.PITCH[1]; var a = pt.matrixTransform(m);
+    pop.hidden = false;
+    var gf = ST.binFit(g.w, g.d, L.bed);
+    document.getElementById('gap-size').innerHTML = g.ok ? g.w + ' × ' + g.d + ' squares · ' + lenPair(g.w, g.d) + (gf.ok ? '' : '<br><span class="st-warn-text">Too big to print as one bin (largest: ' + gf.largest + ').</span>') : 'That area includes filled squares. Drag across empty squares only.';
+    document.getElementById('gap-fill').hidden = !g.ok;
+    var left = a.x - cr.left + 10, top = a.y - cr.top;
+    if (left + pop.offsetWidth > cr.width - 8) { pt.x = L.fx + g.x * ST.PITCH[0]; left = pt.matrixTransform(m).x - cr.left - pop.offsetWidth - 10; }
+    pop.style.left = Math.max(8, left) + 'px'; pop.style.top = Math.max(50, top) + 'px';
+  }
+
+  /* ---- mutations ---- */
+  function place(id, x, y, rot) { snap(); var k = nextKey(id); S.placed.push({ key: k, design: id, x: x, y: y, rot: rot === true ? 90 : (+rot || 0) }); selectOnly(k); S.ghost = null; S.gap = null; render(); var j = judge(P2.rectOf(byKey(k), S.designs), k, id); say(D(id).name + ' placed at column ' + (x + 1) + ', row ' + (y + 1) + '. ' + (j.ok ? '' : j.msg + '.')); }
+  function move(k, x, y) { var p = byKey(k), r = P2.rectOf(p, S.designs); r.x = x; r.y = y; var j = judge(r, k, p.design); if (j.bounce) { ST.toast(ST.esc(label(p)) + ' stays where it was: most of it would sit outside the grid.', 'error'); say('Not moved. ' + j.msg); return false; } if (p.x === x && p.y === y) return true; snap(); p.x = x; p.y = y; say(label(p) + ' moved to column ' + (x + 1) + ', row ' + (y + 1) + '. ' + (j.ok ? '' : j.msg + '.')); return true; }
+  var FACES = { 0: 'back', 90: 'right', 180: 'front', 270: 'left' };
+
+  /* ---- copy & paste: more copies of the same bins (a spare from the shelf first, else one more to print),
+     put down together in the first spot where the whole group fits ---- */
+  var clip = null;
+  function copySel() {
+    var keys = selKeys(); if (!keys.length) return false;
+    var rs = keys.map(function (k) { return P2.rectOf(byKey(k), S.designs); });
+    var x0 = Math.min.apply(null, rs.map(function (r) { return r.x; })), y0 = Math.min.apply(null, rs.map(function (r) { return r.y; }));
+    clip = keys.map(function (k, i) { var q = byKey(k); return { design: q.design, rot: P2.quarter(q), dx: rs[i].x - x0, dy: rs[i].y - y0, w: rs[i].w, d: rs[i].d }; });
+    return true;
+  }
+  function paste() {
+    if (!clip) { say('Nothing copied yet. Select bins and press Ctrl+C.'); return; }
+    var items = clip.filter(function (c) { return D(c.design); });  // a design deleted since copying is skipped
+    if (!items.length) return;
+    var gw = Math.max.apply(null, items.map(function (c) { return c.dx + c.w; })), gd = Math.max.apply(null, items.map(function (c) { return c.dy + c.d; })), spot = null;
+    for (var y = 0; y <= L.ny - gd && !spot; y++) for (var x = 0; x <= L.nx - gw && !spot; x++)
+      if (items.every(function (c) { return P2.cellsFree(L, A.occ, { x: x + c.dx, y: y + c.dy, w: c.w, d: c.d }); })) spot = { x: x, y: y };
+    if (!spot) { ST.toast('No room for ' + (items.length > 1 ? 'these ' + items.length + ' bins together' : 'another one') + '. Make space, or raise the quantity on the Bins page and place it from the shelf.', 'error'); return; }
+    snap();
+    var made = [], more = 0;
+    items.forEach(function (c) {
+      var k = nextKey(c.design), n = +k.split('-').pop(), d = D(c.design);
+      if (n > d.qty) { d.qty = n; more++; }
+      S.placed.push({ key: k, design: c.design, x: spot.x + c.dx, y: spot.y + c.dy, rot: c.rot });
+      made.push(k);
+    });
+    S.set = made; S.sel = made[made.length - 1]; S.anchor = S.sel; focusKey = S.sel;
+    render();
+    say(made.length + ' bin' + (made.length > 1 ? 's' : '') + ' pasted at column ' + (spot.x + 1) + ', row ' + (spot.y + 1) + '.');
+    if (more) ST.toast(more === 1 && made.length === 1 ? 'One more ' + ST.esc(D(items[0].design).name) + ' to print (now ×' + D(items[0].design).qty + ').' : more + ' more bins to print. The quantities went up to match.');
+  }
+  function turn(p, dir) { p.rot = (P2.quarter(p) + (dir < 0 ? 270 : 90)) % 360; }  // a quarter turn, clockwise unless dir < 0
+  function rotate(k, dir) { var p = byKey(k); if (!p) return; var s = P2.size(p, S.designs); snap(); turn(p, dir); p.x += Math.floor((s.w - s.d) / 2); p.y += Math.floor((s.d - s.w) / 2); var n = P2.size(p, S.designs); if (n.w <= L.nx) p.x = Math.max(0, Math.min(p.x, L.nx - n.w)); if (n.d <= L.ny) p.y = Math.max(0, Math.min(p.y, L.ny - n.d)); render(); say(label(p) + ' turned. Now ' + n.w + ' by ' + n.d + (D(p.design).tab ? ', label tab facing ' + FACES[P2.quarter(p)] : '') + '.'); }
+  function remove(k) { var p = byKey(k); if (!p) return; snap(); var n = label(p); S.placed = S.placed.filter(function (q) { return q.key !== k; }); selectOnly(null); focusKey = '_plan'; render(); say(n + ' is back on the shelf.'); }
+  /* several bins at once */
+  function judgeGroup(keys, dx, dy) {
+    var bounce = false, out = 0, hit = null;
+    var others = S.placed.filter(function (q) { return keys.indexOf(q.key) < 0; }).map(function (q) { return P2.rectOf(q, S.designs); });
+    var rects = keys.map(function (k) { var r = P2.rectOf(byKey(k), S.designs); return { x: r.x + dx, y: r.y + dy, w: r.w, d: r.d, key: k }; });
+    rects.forEach(function (r) {
+      var inW = Math.max(0, Math.min(r.x + r.w, L.nx) - Math.max(r.x, 0)), inD = Math.max(0, Math.min(r.y + r.d, L.ny) - Math.max(r.y, 0)), o = r.w * r.d - inW * inD;
+      if (o * 2 > r.w * r.d) bounce = true;
+      out += o;
+      if (!hit) others.forEach(function (q, i) { if (!hit && r.x < q.x + q.w && q.x < r.x + r.w && r.y < q.y + q.d && q.y < r.y + r.d) hit = S.placed.filter(function (z) { return keys.indexOf(z.key) < 0; })[i]; });
+    });
+    var msg = bounce ? 'Mostly off the grid' : hit ? 'Overlaps ' + label(hit) : out ? 'Hangs ' + out + ' square' + (out > 1 ? 's' : '') + ' past the grid' : keys.length + ' bins';
+    return { ok: !bounce && !hit && !out, bounce: bounce, msg: msg, rects: rects };
+  }
+  function moveGroup(keys, dx, dy) {
+    if (!dx && !dy) return true;
+    var j = judgeGroup(keys, dx, dy);
+    if (j.bounce) { ST.toast('The bins stay where they were: some would sit mostly outside the grid.', 'error'); say('Not moved. ' + j.msg); return false; }
+    snap(); keys.forEach(function (k) { var q = byKey(k); q.x += dx; q.y += dy; });
+    say(keys.length + ' bins moved. ' + (j.ok ? '' : j.msg + '.'));
+    return true;
+  }
+  function rotateGroup(keys, dir) {
+    snap();
+    keys.forEach(function (k) { var q = byKey(k), z = P2.size(q, S.designs); turn(q, dir); q.x += Math.floor((z.w - z.d) / 2); q.y += Math.floor((z.d - z.w) / 2); });
+    render(); say(keys.length + ' bins turned in place.');
+  }
+  function removeGroup(keys) {
+    snap(); S.placed = S.placed.filter(function (q) { return keys.indexOf(q.key) < 0; }); selectOnly(null); focusKey = '_plan';
+    render(); say(keys.length + ' bins are back on the shelf.');
+  }
+  /* resize one placed bin by dragging an edge: changes its bin (all copies), or splits this copy off as a new bin */
+  function resizeTo(k, r) {
+    var p = byKey(k), d = D(p.design), w = P2.sideways(p) ? r.d : r.w, dd = P2.sideways(p) ? r.w : r.d;
+    if (w === d.w && dd === d.d && r.x === p.x && r.y === p.y) return;
+    var copies = S.placed.filter(function (q) { return q.design === d.id; }).length;
+    function all() { snap(); d.w = w; d.d = dd; p.x = r.x; p.y = r.y; ST.autoSplit(d, L.bed, NEW_BINS); render(); say(d.name + ' is now ' + r.w + ' by ' + r.d + '.'); }
+    if (d.qty <= 1) { all(); return; }
+    ST.dialog({
+      title: 'Resize ' + d.name,
+      text: '<b>' + P2.esc(d.name) + '</b> has ' + d.qty + ' copies (' + copies + ' on the grid). Make it ' + r.w + ' × ' + r.d + ' for:',
+      html: '<div class="st-field"><label class="st-row"><span><input type="radio" name="rs" value="all" checked> All ' + d.qty + ' copies</span></label>' +
+            '<label class="st-row"><span><input type="radio" name="rs" value="one"> Just this one (it becomes a new bin with the same features)</span></label></div>',
+      confirm: 'Resize',
+      onConfirm: function () { return document.querySelector('input[name="rs"]:checked').value; }
+    }).then(function (v) {
+      if (v === 'all') return all();
+      if (v !== 'one') { render(); return; }
+      snap();
+      var id = newBinId(), nd = Object.assign({}, d, { id: id, name: (d.name + ' ' + w + '×' + dd).slice(0, 40), w: w, d: dd, qty: 1, isNew: true, from: d.id, split: null });
+      ST.autoSplit(nd, L.bed, NEW_BINS);
+      S.designs.push(nd);
+      d.qty -= 1;
+      p.design = id; p.key = id + '-1'; p.x = r.x; p.y = r.y;
+      // the copies left on the old bin are numbered 1…n again (a placement's number can't be above the bin's quantity)
+      S.placed.filter(function (q) { return q.design === d.id; }).forEach(function (q, i) { q.key = d.id + '-tmp' + i; });
+      S.placed.filter(function (q) { return q.design === d.id; }).forEach(function (q, i) { q.key = d.id + '-' + (i + 1); });
+      selectOnly(p.key); render();
+      ST.toast('Made “' + ST.esc(nd.name) + '” from one copy of ' + ST.esc(d.name) + '.', 'success');
+    });
+  }
+  function clickPlace(id) { var d = D(id), sp = P2.freeSpot(L, A.occ, d.w, d.d); if (!sp) { ST.toast('No free ' + d.w + ' × ' + d.d + ' block. ' + A.gaps.length + ' squares are empty, but not in one piece. Drag it in and rearrange.', 'error'); return; } place(id, sp.x, sp.y, sp.rot); }
+  function newBinId() { var n = 1, ids = S.designs.map(function (d) { return d.id; }).concat(project.bins.map(function (b) { return b.id; })); while (ids.indexOf('b' + n) >= 0) n++; return 'b' + n; }
+  function fillGap() {
+    var g = S.gap; if (!g || !g.ok) return; snap();
+    var u = L.binU != null ? Math.max(1, Math.min(3, L.binU)) : 3, id = newBinId(), name = 'Bin ' + g.w + '×' + g.d;
+    var nd = { id: id, name: name, w: g.w, d: g.d, u: u, qty: 1, fil: DEF_FIL, kind: 'bin', isNew: true, split: null };
+    ST.autoSplit(nd, L.bed, NEW_BINS);
+    S.designs.push(nd);
+    S.placed.push({ key: id + '-1', design: id, x: g.x, y: g.y, rot: 0 }); selectOnly(id + '-1'); S.gap = null; S.gapMode = null; render();
+    var t = ST.toast('Added “' + ST.esc(name) + '” (' + u + 'u) to Bins and placed it. Open it in Bins to change its features.', 'success', 'Edit in Bins');
+    var a = t && t.querySelector('.st-toast__action');
+    if (a) a.addEventListener('click', function () { clearTimeout(saveTimer); saveNow(stateKey()); setTimeout(function () { location.href = 'bin-builder.html?p=' + pid + '#' + id; }, 300); });
+  }
+
+  /* ---- pointer: plan ---- */
+  el.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0 || S.view !== 'plan' || !el.querySelector('svg')) return;
+    var b = e.target.closest('.st-bin'), c = cell(e), edge = e.target.closest('[data-edge]'), mod = e.ctrlKey || e.metaKey;
+    if (edge && S.sel && byKey(S.sel)) {
+      e.preventDefault();
+      drag = { type: 'resize', key: S.sel, edge: edge.dataset.edge, r0: P2.rectOf(byKey(S.sel), S.designs) };
+      el.setPointerCapture(e.pointerId); el.classList.add('is-resizing'); return;
+    }
+    if (b) {
+      var k = b.dataset.key; S.gap = null;
+      if (e.shiftKey) { e.preventDefault(); rangeSelect(k, mod); focusKey = k; render(); return; }
+      if (mod) { e.preventDefault(); focusKey = toggleSel(k) ? k : '_plan'; render(); say(selKeys().length + ' selected.'); return; }
+      if (selKeys().indexOf(k) < 0 || selKeys().length < 2) selectOnly(k); else S.sel = k;
+      var p = byKey(k);
+      drag = { type: 'move', key: k, keys: selKeys(), ox: c.x - p.x, oy: c.y - p.y, sx: e.clientX, sy: e.clientY, moved: false };
+      el.setPointerCapture(e.pointerId); focusKey = k; render(); return;
+    }
+    var cx = Math.floor(c.x), cy = Math.floor(c.y);
+    if (cx >= 0 && cy >= 0 && cx < L.nx && cy < L.ny) { selectOnly(null); drag = { type: 'gap', x0: cx, y0: cy }; setGap(cx, cy, cx, cy); el.setPointerCapture(e.pointerId); focusKey = null; render(); }
+  });
+  function setGap(x0, y0, x1, y1) { var r = { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0) + 1, d: Math.abs(y1 - y0) + 1 }; r.ok = P2.cellsFree(L, A.occ, r); S.gap = r; }
+  el.addEventListener('pointermove', function (e) {
+    if (!drag || drag.type === 'shelf') return;
+    var c = cell(e);
+    if (drag.type === 'move') {
+      if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
+      drag.moved = true; var p = byKey(drag.key), s = P2.size(p, S.designs), x = Math.round(c.x - drag.ox), y = Math.round(c.y - drag.oy);
+      if (drag.keys.length > 1) {
+        var dx = x - p.x, dy = y - p.y;
+        if (!S.ghosts || S.ghosts.dx !== dx || S.ghosts.dy !== dy) {
+          var jg = judgeGroup(drag.keys, dx, dy);
+          S.ghosts = jg.rects.map(function (r) { return { x: r.x, y: r.y, w: r.w, d: r.d, ok: jg.ok }; }); S.ghosts.dx = dx; S.ghosts.dy = dy; S.ghosts.msg = jg.msg;
+          S.liftedSet = drag.keys; render();
+        }
+      } else {
+        var j = judge({ x: x, y: y, w: s.w, d: s.d }, p.key, p.design);
+        if (!S.ghost || S.ghost.x !== x || S.ghost.y !== y) { S.ghost = { x: x, y: y, w: s.w, d: s.d, ok: j.ok, msg: j.msg }; S.lifted = p.key; render(); }
+      }
+    } else if (drag.type === 'resize') {
+      var r0 = drag.r0, r = { x: r0.x, y: r0.y, w: r0.w, d: r0.d }, gx = Math.round(c.x), gy = Math.round(c.y);
+      if (drag.edge === 'e') r.w = Math.min(20, Math.max(1, gx - r0.x));
+      if (drag.edge === 'w') { var x0 = Math.max(r0.x + r0.w - 20, Math.min(r0.x + r0.w - 1, gx)); r.x = x0; r.w = r0.x + r0.w - x0; }
+      if (drag.edge === 's') r.d = Math.min(20, Math.max(1, gy - r0.y));
+      if (drag.edge === 'n') { var y0 = Math.max(r0.y + r0.d - 20, Math.min(r0.y + r0.d - 1, gy)); r.y = y0; r.d = r0.y + r0.d - y0; }
+      if (!S.ghost || S.ghost.x !== r.x || S.ghost.y !== r.y || S.ghost.w !== r.w || S.ghost.d !== r.d) {
+        var q = byKey(drag.key), jr = judge(r, q.key, q.design), big = !ST.binFit(r.w, r.d, L.bed).ok;
+        S.ghost = { x: r.x, y: r.y, w: r.w, d: r.d, ok: jr.ok, msg: r.w + ' × ' + r.d + (jr.ok ? '' : ' · ' + jr.msg) + (big ? ' · too big to print in one piece' : '') };
+        S.lifted = q.key; render();
+      }
+    } else if (drag.type === 'gap') {
+      var cx = Math.max(0, Math.min(L.nx - 1, Math.floor(c.x))), cy = Math.max(0, Math.min(L.ny - 1, Math.floor(c.y)));
+      var old = S.gap; setGap(drag.x0, drag.y0, cx, cy); if (!old || old.w !== S.gap.w || old.d !== S.gap.d || old.x !== S.gap.x || old.y !== S.gap.y) render();
+    }
+  });
+  el.addEventListener('pointerup', function () {
+    if (!drag || drag.type === 'shelf') return;
+    var d = drag; drag = null; el.classList.remove('is-resizing');
+    if (d.type === 'move' && S.ghosts) { var gs = S.ghosts; S.ghosts = null; S.liftedSet = null; moveGroup(d.keys, gs.dx, gs.dy); }
+    if (d.type === 'move' && S.ghost) { var g = S.ghost; S.ghost = null; S.lifted = null; move(d.key, g.x, g.y); }
+    if (d.type === 'resize' && S.ghost) { var gr = S.ghost; S.ghost = null; S.lifted = null; render(); resizeTo(d.key, { x: gr.x, y: gr.y, w: gr.w, d: gr.d }); return; }
+    render();
+  });
+  el.addEventListener('dblclick', function (e) {
+    if (!el.querySelector('svg') || e.target.closest('.st-bin')) return;
+    var c = cell(e), cx = Math.floor(c.x), cy = Math.floor(c.y);
+    var g = P2.growGap(L, A.occ, cx, cy); if (g) { g.ok = true; S.gap = g; render(); say(g.w + ' by ' + g.d + ' gap selected.'); }
+  });
+
+  /* ---- pointer: shelf drag ---- */
+  document.getElementById('shelf').addEventListener('pointerdown', function (e) {
+    var g = e.target.closest('[data-grip]'); if (!g || g.disabled) return;
+    e.preventDefault(); var d = D(g.dataset.grip);
+    drag = { type: 'shelf', id: d.id, rot: 0 };
+    chip = document.createElement('div'); chip.className = 'st-drag-chip'; chip.innerHTML = '<svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-drag"/></svg>' + P2.esc(d.name) + ' · ' + d.w + '×' + d.d; document.body.appendChild(chip);
+    chip.style.left = e.clientX + 'px'; chip.style.top = e.clientY + 'px';
+    g.closest('.st-shelf__item').classList.add('is-dragging');
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!drag || drag.type !== 'shelf') return;
+    chip.style.left = e.clientX + 'px'; chip.style.top = e.clientY + 'px';
+    var on = overPlan(e) && S.view === 'plan'; chip.classList.toggle('is-over', on); el.classList.toggle('is-drop-target', on);
+    if (on) {
+      var d = D(drag.id), w = P2.sideways(drag) ? d.d : d.w, h = P2.sideways(drag) ? d.w : d.d, c = cell(e), x = Math.round(c.x - w / 2), y = Math.round(c.y - h / 2), j = judge({ x: x, y: y, w: w, d: h }, null, d.id);
+      if (!S.ghost || S.ghost.x !== x || S.ghost.y !== y || S.ghost.w !== w) { S.ghost = { x: x, y: y, w: w, d: h, ok: j.ok, msg: j.msg, bounce: j.bounce }; render(); }
+    } else if (S.ghost) { S.ghost = null; render(); }
+  });
+  document.addEventListener('pointerup', function (e) {
+    if (!drag || drag.type !== 'shelf') return;
+    var d = drag, g = S.ghost; drag = null; chip.remove(); chip = null; el.classList.remove('is-drop-target'); S.ghost = null;
+    if (g && overPlan(e)) { if (g.bounce) { ST.toast('Nothing placed: the ' + ST.esc(D(d.id).name.toLowerCase()) + ' would sit mostly outside the grid.', 'error'); render(); } else place(d.id, g.x, g.y, d.rot); }
+    else render();
+  });
+
+  /* ---- shelf: click selects that bin on the grid (again = its next copy); double-click or F2 renames ---- */
+  var renaming = null;
+  function pick(id) {
+    var copies = S.placed.filter(function (q) { return q.design === id; });
+    if (!copies.length) { say(D(id).name + ' isn’t on the grid yet. Choose Place, or drag it from the shelf.'); return; }
+    var at = copies.map(function (q) { return q.key; }).indexOf(S.sel);
+    selectOnly(copies[(at + 1) % copies.length].key); focusKey = null; render();
+    var b = document.querySelector('[data-pick="' + id + '"]'); if (b) b.focus({ preventScroll: true });  // the shelf was rebuilt
+    say(label(byKey(S.sel)) + ' selected' + (copies.length > 1 ? ', copy ' + ((at + 1) % copies.length + 1) + ' of ' + copies.length : '') + '.');
+  }
+  function startRename(id) { renaming = id; shelf(); }
+  function endRename(commit) {
+    var inp = document.querySelector('[data-rename]'), id = renaming;
+    if (!inp || !id) return;
+    var v = inp.value.replace(/\s+/g, ' ').trim(), d = D(id);
+    renaming = null;
+    if (commit && v && v !== d.name) { snap(); d.name = v; render(); say('Renamed to ' + v + '.'); }
+    else shelf();
+    var b = document.querySelector('[data-pick="' + id + '"]'); if (b) b.focus({ preventScroll: true });
+  }
+  var shelfEl = document.getElementById('shelf'), pickTimer = null;
+  shelfEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pick]'); if (!b) return;
+    clearTimeout(pickTimer);
+    if (e.detail > 1) return;  // part of a double-click: rename instead
+    pickTimer = setTimeout(function () { pick(b.dataset.pick); }, 220);
+  });
+  shelfEl.addEventListener('dblclick', function (e) { var b = e.target.closest('[data-pick]'); if (b) { clearTimeout(pickTimer); startRename(b.dataset.pick); } });
+  shelfEl.addEventListener('keydown', function (e) {
+    var b = e.target.closest('[data-pick]');
+    if (b && e.key === 'F2') { e.preventDefault(); startRename(b.dataset.pick); return; }
+    if (e.target.matches && e.target.matches('[data-rename]')) {
+      if (e.key === 'Enter') { e.preventDefault(); endRename(true); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); endRename(false); }
+    }
+  });
+  shelfEl.addEventListener('focusout', function (e) { if (e.target.matches && e.target.matches('[data-rename]')) endRename(true); });
+
+  /* ---- clicks ---- */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-place],[data-act],[data-goto]');
+    if (!t) return;
+    if (t.dataset.place) clickPlace(t.dataset.place);
+    var many = selKeys().length > 1;
+    if (t.dataset.act === 'rotate') { if (many) rotateGroup(selKeys()); else rotate(S.sel); }
+    if (t.dataset.act === 'dup' && copySel()) paste();
+    if (t.dataset.act === 'remove') { if (many) removeGroup(selKeys()); else remove(S.sel); }
+    if (t.dataset.act === 'clear') { selectOnly(null); render(); }
+    if (t.dataset.goto) { selectOnly(t.dataset.goto); focusKey = S.sel; render(); }
+  });
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('redo').addEventListener('click', redo);
+  document.getElementById('gap-fill').addEventListener('click', fillGap);
+  document.getElementById('gap-close').addEventListener('click', function () { S.gap = null; S.gapMode = null; render(); });
+  el.addEventListener('focusin', function (e) {
+    var b = e.target.closest('.st-bin'); if (!b || S.sel === b.dataset.key) return;
+    if (selKeys().indexOf(b.dataset.key) >= 0) S.sel = b.dataset.key; else selectOnly(b.dataset.key);  // Tab within a selection keeps it
+    focusKey = S.sel; render();
+  });
+
+  /* ---- keyboard ---- */
+  document.addEventListener('keydown', function (e) {
+    if ((e.target.matches && e.target.matches('input, select, textarea')) || S.view !== 'plan') return;
+    var mod = e.ctrlKey || e.metaKey;
+    if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); redo(); return; }
+    if (drag && drag.type === 'shelf' && (e.key === 'r' || e.key === 'R')) { drag.rot = (P2.quarter(drag) + (e.shiftKey ? 270 : 90)) % 360; S.ghost = null; return; }
+    if (drag && drag.type === 'shelf' && e.key === 'Escape') { drag = null; chip.remove(); chip = null; S.ghost = null; el.classList.remove('is-drop-target'); render(); return; }
+    if (mod && !e.shiftKey && (e.key === 'c' || e.key === 'C') && selKeys().length && !String(window.getSelection())) { e.preventDefault(); copySel(); say(clip.length + ' bin' + (clip.length > 1 ? 's' : '') + ' copied.'); return; }
+    if (mod && (e.key === 'v' || e.key === 'V')) { e.preventDefault(); paste(); return; }
+    if (mod && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); if (copySel()) paste(); return; }
+    if (mod && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); S.set = S.placed.map(function (q) { return q.key; }); S.sel = S.set[0] || null; S.anchor = S.sel; render(); say(S.set.length + ' bins selected.'); return; }
+    if (e.key === 'Escape' && !S.gapMode && !S.carry && selKeys().length > 1) { selectOnly(null); focusKey = '_plan'; render(); say('Selection cleared.'); return; }
+    var inPlan = el.contains(document.activeElement);
+    if (!inPlan && !S.gapMode) return;
+    var dx = { ArrowLeft: -1, ArrowRight: 1 }[e.key] || 0, dy = { ArrowUp: -1, ArrowDown: 1 }[e.key] || 0;
+    if (S.gapMode) {
+      var gm = S.gapMode;
+      if (dx || dy) { e.preventDefault(); if (e.shiftKey) { gm.x1 = Math.max(0, Math.min(L.nx - 1, gm.x1 + dx)); gm.y1 = Math.max(0, Math.min(L.ny - 1, gm.y1 + dy)); } else { gm.x0 = gm.x1 = Math.max(0, Math.min(L.nx - 1, gm.x1 + dx)); gm.y0 = gm.y1 = Math.max(0, Math.min(L.ny - 1, gm.y1 + dy)); } setGap(gm.x0, gm.y0, gm.x1, gm.y1); focusKey = '_plan'; render(); say(S.gap.w + ' by ' + S.gap.d + (S.gap.ok ? ' gap' : ', includes filled squares') + ' at column ' + (S.gap.x + 1) + ', row ' + (S.gap.y + 1)); return; }
+      if (e.key === 'Enter') { e.preventDefault(); fillGap(); return; }
+      if (e.key === 'Escape') { S.gapMode = null; S.gap = null; render(); say('Gap selection cleared.'); return; }
+    }
+    if ((e.key === 'g' || e.key === 'G') && !S.carry && !mod) { var f = A.gaps[0]; if (!f) { say('No empty squares.'); return; } S.gapMode = { x0: f.x, y0: f.y, x1: f.x, y1: f.y }; selectOnly(null); setGap(f.x, f.y, f.x, f.y); focusKey = '_plan'; render(); say('Gap selection. Arrow keys move, Shift and arrows extend, Enter fills, Escape cancels.'); return; }
+    var b = document.activeElement.closest && document.activeElement.closest('.st-bin'); if (!b) return;
+    var p = byKey(b.dataset.key), s = P2.size(p, S.designs), group = selKeys().length > 1 && selKeys().indexOf(p.key) >= 0 ? selKeys() : null;
+    if (group && !S.carry) {
+      if (dx || dy) { e.preventDefault(); if (moveGroup(group, dx, dy)) { focusKey = p.key; render(); } return; }
+      if (e.key === 'r' || e.key === 'R') { focusKey = p.key; rotateGroup(group, e.shiftKey ? -1 : 1); return; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeGroup(group); return; }
+    }
+    if (S.carry) {
+      if (dx || dy) { e.preventDefault(); S.carry.x += dx; S.carry.y += dy; var j = judge({ x: S.carry.x, y: S.carry.y, w: s.w, d: s.d }, p.key, p.design); S.ghost = { x: S.carry.x, y: S.carry.y, w: s.w, d: s.d, ok: j.ok, msg: j.msg }; focusKey = p.key; render(); say(j.msg); return; }
+      if (e.key === 'Enter') { e.preventDefault(); var c = S.carry; S.carry = null; S.ghost = null; S.lifted = null; move(p.key, c.x, c.y); focusKey = p.key; render(); return; }
+      if (e.key === 'Escape') { S.carry = null; S.ghost = null; S.lifted = null; focusKey = p.key; render(); say('Canceled. ' + label(p) + ' did not move.'); return; }
+    }
+    if (dx || dy) { e.preventDefault(); if (move(p.key, p.x + dx, p.y + dy)) { focusKey = p.key; render(); } return; }
+    if (e.key === 'Enter') { e.preventDefault(); S.carry = { x: p.x, y: p.y }; S.lifted = p.key; S.ghost = { x: p.x, y: p.y, w: s.w, d: s.d, ok: true, msg: 'Picked up' }; focusKey = p.key; render(); say('Picked up ' + label(p) + '. Arrow keys move it, Enter drops, Escape cancels.'); return; }
+    if (e.key === 'r' || e.key === 'R') { focusKey = p.key; rotate(p.key, e.shiftKey ? -1 : 1); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); remove(p.key); return; }
+    if (e.key === 'Escape') { selectOnly(null); focusKey = '_plan'; render(); }
+  });
+
+  /* ---------------- Plan | 3D ---------------- */
+  var vpHost = document.getElementById('vp3d'), vp = null, vpReady = null, t3 = null, seq3 = 0;
+  var P3 = document.getElementById('lay3d-render'), p3lab = P3.querySelector('.st-render__label'), p3time = P3.querySelector('.st-render__time');
+  function pill(state, text, t) { P3.dataset.state = state; p3lab.textContent = text; p3time.textContent = t || ''; }
+  function setView(v) {
+    S.view = v;
+    try { localStorage.setItem('st.layoutView', v); } catch (e) { /* storage off */ }
+    document.querySelectorAll('#view [data-view]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.view === v)); });
+    el.hidden = v !== 'plan'; vpHost.hidden = v === 'plan'; pop.hidden = true;
+    document.getElementById('legend-plan').hidden = v !== 'plan';
+    document.getElementById('legend-3d').hidden = v === 'plan';
+    if (v === '3d') schedule3d(0);
+  }
+  document.getElementById('view').addEventListener('click', function (e) { var b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
+  document.getElementById('lay3d-views').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view3]'); if (!b) return;
+    this.querySelectorAll('[data-view3]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    if (vp) vp.setView(b.dataset.view3);
+  });
+  function schedule3d(delay) {
+    clearTimeout(t3); seq3++;
+    if (vp) vp.setStale(true);
+    pill('idle', 'Changes not rendered', '');
+    t3 = setTimeout(render3d, delay == null ? 600 : delay);
+  }
+  function binFor(d) {  // the saved bin with any size change made here (resize) applied
+    var find = function (id) { return project.bins.filter(function (b) { return b.id === id; })[0]; }, src = find(d.id) || (d.from && find(d.from));
+    return Object.assign({}, src || { qty: 1 }, { name: d.name, w: d.w, d: d.d, h: d.u, split: src && src.id === d.id ? src.split : null });
+  }
+  var last3d = null;
+  function geomKey() { return JSON.stringify({ p: S.placed, d: S.designs.map(function (d) { return [d.id, d.w, d.d, d.u, d.fil]; }) }); }
+  function render3d() {
+    var mine = ++seq3, t0 = performance.now(), placed = clone(S.placed);
+    last3d = geomKey();
+    pill('rendering', 'Rendering', '');
+    if (!vpReady) vpReady = import('./js/viewport.js').then(function (m) {
+      vp = m.createViewport(vpHost);
+      vp.onPick(function (k, e) {  // click a bin in 3D to select it (Ctrl / Shift as in the plan)
+        var mod = e.ctrlKey || e.metaKey;
+        if (!k) { if (!mod && !e.shiftKey) selectOnly(null); }
+        else if (e.shiftKey) rangeSelect(k, mod);
+        else if (mod) toggleSel(k);
+        else selectOnly(k);
+        render();
+        if (k) say(label(byKey(k)) + (selKeys().indexOf(k) >= 0 ? ' selected.' : ' removed from the selection.'));
+      });
+      return vp;
+    });
+    var used = {}; placed.forEach(function (p) { used[p.design] = D(p.design); });
+    var ids = Object.keys(used);
+    Promise.all([vpReady, ST.api('POST', 'projects/' + pid + '/preview/baseplate')].concat(ids.map(function (id) {
+      return ST.api('POST', 'projects/' + pid + '/bins/render', { bin: binFor(used[id]) });
+    }))).then(function (r) {
+      if (mine !== seq3) return null;
+      var plate = r[1], files = {}; ids.forEach(function (id, i) { files[id] = r[2 + i]; });
+      var pf = FILS[(project.baseplate || {}).filament] || FILS[DEF_FIL];
+      var byId = {}; L.pieces.forEach(function (p) { byId[p.id] = p; });
+      var seat = L.plate.height - 4.981;  // where a bin's feet rest: measured in OpenSCAD, 4.369 mm up in a 9.35 mm plate
+      var parts = plate.files.map(function (x) { var p = byId[x.piece]; return { url: '/api/projects/' + pid + '/files/cache/' + x.file, x: p.x, y: p.y, color: pf.color, kind: pf.type }; });
+      placed.forEach(function (p) {
+        var d = used[p.design], f = fil(d);
+        parts.push({ url: '/api/projects/' + pid + '/files/cache/' + files[p.design].file, x: L.fx + p.x * ST.PITCH[0] + 0.25, y: L.fy + p.y * ST.PITCH[1] + 0.25,
+                     z: seat, rot: p.rot, selected: selKeys().indexOf(p.key) >= 0, id: p.key, pickable: true, color: f.color, kind: f.type });
+      });
+      return vp.loadAssembly({ parts: parts, drawer: { W: L.W, D: L.D, H: L.H, fx: L.fx, fy: L.fy, pitch: L.pitch, ghost: true, plateH: L.plate.height } });
+    }).then(function (done) {
+      if (mine !== seq3 || done === null) return;
+      vp.setStale(false);
+      pill('ready', 'Ready', ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    }, function (e) {
+      if (mine !== seq3) return;
+      pill('error', 'Couldn’t render: ' + e.message.split('. ')[0], '');
+    });
+  }
+
+  /* ---------------- start ---------------- */
+  if (ST.pitchText(L.pitch)) document.getElementById('snap-hint').textContent = 'Bins snap to whole squares (' + ST.pitchText(L.pitch) + ', fitted to this drawer)';
+  ST.api('GET', 'settings').then(function (st) {
+    st.filaments.forEach(function (f) { FILS[f.id] = { name: f.name, type: f.material, color: f.color }; });
+    DEF_FIL = st.filaments[0] && st.filaments[0].id;
+    TAB_DEFAULT = !!(st.new_bins && st.new_bins.label_tab); NEW_BINS = st.new_bins || NEW_BINS;
+    loadFrom(project);
+    saved = stateKey();
+    document.addEventListener('st:prefs', render);
+    window.addEventListener('resize', gapPop);
+    var v = 'plan'; try { v = localStorage.getItem('st.layoutView') === '3d' ? '3d' : 'plan'; } catch (e) { /* storage off */ }
+    render();
+    setView(v);
+  });
+});
+</script>
+</body>
+</html>

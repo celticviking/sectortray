@@ -1,0 +1,36 @@
+name: Idea or wish
+description: Something that would make SectorTray easier or more useful.
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Projects
+        - Planner (drawer size, baseplate)
+        - Bins
+        - Layout
+        - Silverware wizard
+        - Print list / PrusaSlicer
+        - Settings
+        - Printing / new kinds of parts
+        - Somewhere else
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What would you like SectorTray to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it would help
+      description: What were you trying to do when you thought of it?
+  - type: textarea
+    id: pictures
+    attributes:
+      label: Sketches or screenshots

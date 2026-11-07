@@ -1,0 +1,20 @@
+# Large/binary tools fetched by tools/setup.py
+vendor/openscad/
+vendor/_downloads/
+vendor/_patched/
+
+# Generated output
+out/
+host/bin/
+host/obj/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

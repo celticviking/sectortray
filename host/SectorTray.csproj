@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- SectorTray desktop host: a frameless WebView2 window around the local Python server.
+       Targets .NET Framework 4.8, which ships with Windows 10/11, so nobody needs an extra runtime.
+       Build:  dotnet build host -c Release   (output: host/bin/Release/net48/) -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>SectorTray</AssemblyName>
+    <RootNamespace>SectorTray</RootNamespace>
+    <Version>0.6.0</Version>
+    <Product>SectorTray</Product>
+    <Description>Offline Gridfinity drawer planner</Description>
+    <Copyright>Copyright (C) 2026 celticviking · GPL-3.0-or-later</Copyright>
+    <DebugType>none</DebugType>  <!-- no debug-symbol path (the build PC's folders) inside the exe -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Nullable>disable</Nullable>
+    <ApplicationIcon Condition="Exists('SectorTray.ico')">SectorTray.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <!-- full multi-size icon next to the exe, so the window and taskbar get crisp small sizes -->
+    <None Include="SectorTray.ico" Condition="Exists('SectorTray.ico')" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

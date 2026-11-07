@@ -1,0 +1,10 @@
+/* SectorTray: locally bundled fonts. All families are SIL Open Font License 1.1.
+   Latin subset only (covers ⅛ ⅜ ⅝ ⅞ ¼ ½ ¾ ″ × ± ⁄ and super/subscript digits are composed in CSS). */
+@font-face{font-family:'Archivo';font-style:normal;font-weight:400 800;font-stretch:62% 125%;font-display:swap;src:url('fonts/Archivo-400_800.woff2') format('woff2')}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/BarlowSemiCondensed-400.woff2') format('woff2')}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/BarlowSemiCondensed-500.woff2') format('woff2')}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/BarlowSemiCondensed-600.woff2') format('woff2')}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/BarlowSemiCondensed-700.woff2') format('woff2')}
+@font-face{font-family:'Chivo';font-style:normal;font-weight:400 800;font-display:swap;src:url('fonts/Chivo-400_800.woff2') format('woff2')}
+@font-face{font-family:'Chivo Mono';font-style:normal;font-weight:400 700;font-display:swap;src:url('fonts/ChivoMono-400_700.woff2') format('woff2')}
+@font-face{font-family:'Red Hat Mono';font-style:normal;font-weight:400 700;font-display:swap;src:url('fonts/RedHatMono-400_700.woff2') format('woff2')}

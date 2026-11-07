@@ -1,0 +1,6 @@
+[submodule "vendor/gridfinity-rebuilt-openscad"]
+	path = vendor/gridfinity-rebuilt-openscad
+	url = https://github.com/kennetek/gridfinity-rebuilt-openscad.git
+[submodule "vendor/gridfinity_extended_openscad"]
+	path = vendor/gridfinity_extended_openscad
+	url = https://github.com/ostat/gridfinity_extended_openscad.git

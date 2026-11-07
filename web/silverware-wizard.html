@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silverware tray · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script src="js/st.js" defer></script>
+<script src="js/traymath.js" defer></script>
+<script src="js/phase2.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app st-app--fixed">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  <span class="st-project-tag" hidden></span>
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html" aria-current="page">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+<div class="st-wizard">
+  <div class="st-wizard__bar">
+    <span class="st-wizard__title">Silverware tray</span><span class="st-kind"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg>Tray</span>
+    <ol class="st-steps" role="tablist" aria-label="Wizard steps" id="steps">
+      <li class="st-steps__item" aria-current="step"><button class="st-steps__btn" type="button" role="tab" aria-selected="true" aria-controls="step-measure" data-step="measure"><span class="st-id">1</span>Measure</button></li>
+      <li class="st-steps__item"><button class="st-steps__btn" type="button" role="tab" aria-selected="false" aria-controls="step-arrange" data-step="arrange"><span class="st-id">2</span>Arrange</button></li>
+      <li class="st-steps__item"><button class="st-steps__btn" type="button" role="tab" aria-selected="false" aria-controls="step-print" data-step="print"><span class="st-id">3</span>Print</button></li>
+    </ol>
+    <div class="st-wizard__bar-end"><a class="st-btn st-btn--ghost" href="bin-builder.html" id="cancel">Back to Bins</a></div>
+  </div>
+
+  <!-- ============ STEP 1 · MEASURE ============ -->
+  <section class="st-step" id="step-measure" role="tabpanel" aria-label="Measure">
+    <div class="st-layout st-layout--measure">
+      <div class="st-col">
+        <p class="st-row__sub" style="font-size:var(--st-text-sm);color:var(--st-color-text);max-width:760px;line-height:1.5">Lay one of each utensil flat and measure it with your tape. <b>Length</b> is tip to tip. <b>Handle</b> is across the end of the handle. <b>Head</b> is across the widest part of the bowl, tines or blade. Each type gets its own slot, tapered from head to handle. Slots alternate head-to-tail so they pack tightly.</p>
+        <div class="st-utensils" id="cards"></div>
+      </div>
+      <div class="st-col">
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">1.1</span><h2 class="st-tag">Tray so far</h2><span class="st-panel__aside" id="m-margin"></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div style="height:220px;padding:14px 18px 4px;background:var(--st-mat-bg)" id="m-tray"></div>
+          <div class="st-readout">
+            <div class="st-readout__cell"><span class="st-readout__label">Footprint</span><span class="st-readout__value" id="m-fp"></span><span class="st-readout__sub" id="m-fp-sub"></span></div>
+            <div class="st-readout__cell"><span class="st-readout__label">Slots</span><span class="st-readout__value" id="m-slots"></span><span class="st-readout__sub" id="m-slots-sub"></span></div>
+          </div>
+        </section>
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">1.2</span><h2 class="st-tag">Before printing</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-panel__body" id="m-issues"></div>
+        </section>
+        <div class="st-btn-stack" style="margin-top:auto"><button class="st-btn st-btn--primary st-btn--lg st-btn--split" type="button" data-goto="arrange">Next: arrange <svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-chevron-right"/></svg></button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2 · ARRANGE ============ -->
+  <section class="st-step" id="step-arrange" role="tabpanel" aria-label="Arrange" hidden>
+    <div class="st-layout st-layout--planner">
+      <div class="st-col" style="overflow:auto">
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">2.1</span><h2 class="st-tag">Slot order</h2><span class="st-panel__aside">left to right</span><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <ol class="st-slot-list" id="slots"></ol>
+          <div class="st-panel__foot">Drag the rows or the slots in the drawing. <span class="st-kbd">Alt</span><span class="st-kbd">↑</span><span class="st-kbd">↓</span> moves the focused row.</div>
+        </section>
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">2.2</span><h2 class="st-tag">Fit</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-panel__body">
+            <div class="st-field"><span class="st-row__title">Margin <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Clearance around every utensil. <b>Snug</b> 3 mm keeps them neat, <b>Normal</b> 5 mm is the default, and <b>Easy</b> 7 mm is quicker to grab from.</span></span></span>
+              <div class="st-seg st-seg--block st-seg--text" role="group" aria-label="Margin" id="margin"><button class="st-seg__btn" type="button" data-m="Snug">Snug · 3</button><button class="st-seg__btn" type="button" data-m="Normal">Normal · 5</button><button class="st-seg__btn" type="button" data-m="Easy">Easy · 7</button></div>
+            </div>
+            <div class="st-row"><div class="st-row__label"><span class="st-row__title">Height</span><span class="st-row__sub" id="h-sub"></span></div>
+              <div class="st-stepper" id="height"><button class="st-stepper__btn" type="button" aria-label="Lower" data-step="-1">−</button><output class="st-stepper__value" id="h-val"></output><button class="st-stepper__btn" type="button" aria-label="Taller" data-step="1">+</button></div></div>
+            <div class="st-row"><div class="st-row__label"><span class="st-row__title">Round the wall tops <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop st-hint__pop--right" role="tooltip">The walls between slots are <b>tapered</b>: thick at the bottom for strength, thinner at the top so the slots stay wide. Rounding the top edge makes them kinder to fingers.</span></span></span><span class="st-row__sub">Walls taper thick to thin</span></div>
+              <button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Round the wall tops" id="round"></button></div>
+          </div>
+        </section>
+        <section class="st-panel" id="out-panel">
+          <div class="st-panel__head"><span class="st-panel__num">2.3</span><h2 class="st-tag">Not in tray</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <ul class="st-out-list" id="out"></ul>
+        </section>
+      </div>
+      <section class="st-panel st-panel--mat" aria-label="Tray drawing">
+        <div class="st-panel__head"><span class="st-panel__num">Fig. 4</span><h2 class="st-tag">Tray · top down</h2>
+          <div class="st-tools"><span class="st-row__sub">Show bed</span><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Show printer bed" id="showbed"></button></div></div>
+        <div class="st-plan__wrap" id="tray" style="touch-action:none"></div>
+        <div class="st-panel__foot st-legend" style="border-top:0">
+          <span class="st-legend__item"><span class="st-legend__swatch" style="background:var(--st-color-plan-floor)"></span>Slot, tapered to the utensil</span>
+          <span class="st-legend__item"><span class="st-legend__swatch" style="border-style:dashed;border-color:var(--st-color-plan-grid)"></span>42 mm square</span>
+          <span class="st-legend__item"><span class="st-legend__swatch" style="border-color:var(--st-color-problem);background:var(--st-color-problem-fill)"></span>Past the bed limit</span>
+          <span class="st-legend__hint">Front of the drawer is at the bottom</span>
+        </div>
+      </section>
+      <div class="st-col" style="overflow:auto">
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">2.4</span><h2 class="st-tag">Footprint</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-readout">
+            <div class="st-readout__hero" style="border-bottom:0"><span class="st-readout__label">Squares</span><span class="st-readout__value" id="a-fp"></span><span class="st-readout__sub" id="a-fp-sub"></span></div>
+          </div>
+          <div class="st-panel__body" style="gap:8px;border-top:1px solid var(--st-color-border)"><p class="st-fit" id="fit-bed"></p><p class="st-fit" id="fit-drawer"></p></div>
+        </section>
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">2.5</span><h2 class="st-tag">Before printing</h2><span class="st-panel__aside" id="a-count"></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-panel__body">
+            <ul class="st-decisions" id="decisions"></ul>
+            <div class="st-issues" id="a-issues"></div>
+          </div>
+        </section>
+        <div class="st-btn-stack" style="margin-top:auto"><button class="st-btn st-btn--primary st-btn--lg st-btn--split" type="button" data-goto="print">Next: print <svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-chevron-right"/></svg></button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 3 · PRINT ============ -->
+  <section class="st-step" id="step-print" role="tabpanel" aria-label="Print" hidden>
+    <div class="st-layout st-layout--builder">
+      <div class="st-col" style="overflow:auto">
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">3.1</span><h2 class="st-tag">Summary</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div id="p-summary"></div>
+        </section>
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">3.2</span><h2 class="st-tag">Filament</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-panel__body">
+            <div class="st-swatch-pick" role="group" aria-label="Filament" id="fil"></div>
+            <p class="st-row__sub" id="fil-name"></p>
+            <p class="st-row__sub">PETG suits kitchen drawers: it handles warm washing better than PLA.</p>
+          </div>
+        </section>
+      </div>
+      <section class="st-panel st-panel--mat" aria-label="3D preview">
+        <div class="st-panel__head"><span class="st-panel__num">Fig. 5</span><h2 class="st-tag">3D preview</h2><span class="st-panel__aside" id="p-title"></span></div>
+        <div class="st-viewport" id="viewport">
+          <div class="st-viewport__placeholder"><div class="st-viewport__note">The 3D preview appears when the tray is ready to print.</div></div>
+          <div class="st-viewport__bar st-viewport__bar--bottom">
+            <div class="st-render" id="render" data-state="idle" role="status" aria-live="polite"><span class="st-render__dot"></span><span class="st-render__label">Not rendered</span><span class="st-render__time"></span><button class="st-btn st-btn--sm st-btn--ghost" type="button" id="render-btn"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-render"/></svg> Render</button><span class="st-render__bar"></span></div>
+            <span class="st-viewport__spacer"></span>
+            <button class="st-btn" type="button" id="p-export" disabled><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-export"/></svg> Export STL</button>
+            <button class="st-btn" type="button" id="p-slicer" disabled><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-slicer"/></svg> Open in <span data-slicer-name>PrusaSlicer</span></button>
+          </div>
+        </div>
+      </section>
+      <div class="st-col">
+        <section class="st-panel">
+          <div class="st-panel__head"><span class="st-panel__num">3.3</span><h2 class="st-tag">Add to drawer</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+          <div class="st-panel__body" id="p-add"></div>
+        </section>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+</div>
+<div class="st-visually-hidden" aria-live="polite" id="announce"></div>
+<script>
+/* Silverware tray wizard: flow from design/handoff_v2/silverware-wizard.html, wired to real tray maths
+   (ST.P2.analyzeTray → web/js/traymath.js), the drawer's bins/placements, Settings, and real renders.
+   ?p=<drawer>&bin=<id> edits an existing tray; otherwise "Add to drawer" creates one (or two, when split). */
+document.addEventListener('st:shell', function (ev) {
+  var project = ev.detail.project;
+  if (!project) { location.replace('projects.html?first=1'); return; }
+  var P2 = ST.P2, pid = encodeURIComponent(project.id), DL = project.layout && !project.layout.error ? project.layout : null;
+  var IC = function (n) { return '<svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-' + n + '"/></svg>'; };
+  var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+  var editId = new URLSearchParams(location.search).get('bin'), editing = null;
+  var FILS = [], BED = [250, 220], BEDNAME = 'printer', S = null, uid = 100, vp = null, vpReady = null, rseq = 0, tick = null;
+  document.getElementById('cancel').href = 'bin-builder.html?p=' + pid;
+  var binU = DL && DL.binU != null ? DL.binU : 12;
+
+  function plateMagnets() { var b = project.baseplate || {}; return !!b.magnets && b.style !== 'lite'; }
+  function fresh() {
+    return { utensils: clone(P2.UTENSILS).map(function (u) { u.preset = u.name; return u; }),
+             margin: 'Normal', split: false, halves: false, u: Math.max(2, Math.min(3, binU)), round: true,
+             fil: (project.baseplate && project.baseplate.filament) || (FILS[0] && FILS[0].id), step: 'measure', showBed: false,
+             added: false, addedIds: [], prevMargin: null, rendered: null, bed: BED, bedName: BEDNAME };
+  }
+  function fromBin(b) {
+    var t = b.tray;
+    return { utensils: t.utensils.map(function (u) { return { id: u.id, name: u.name, kind: u.kind, preset: u.preset, len: u.len, handle: u.handle, head: u.head, count: u.count, out: !!u.out }; }),
+             margin: t.margin, split: false, halves: !!t.halves, u: b.h, round: t.round !== false, fil: b.filament || (FILS[0] && FILS[0].id),
+             step: 'arrange', showBed: false, added: false, addedIds: [b.id], prevMargin: null, rendered: null, bed: BED, bedName: BEDNAME };
+  }
+  function say(t) { var a = document.getElementById('announce'); a.textContent = ''; setTimeout(function () { a.textContent = t; }, 30); }
+  function U(id) { return S.utensils.filter(function (u) { return u.id === id; })[0]; }
+  function an() { return P2.analyzeTray(S); }
+  function fpText(fp) { return fp.gx + ' × ' + fp.gy; }
+  function fpReal(fp) { return ST.pair(P2.sqMM(fp.gx), P2.sqMM(fp.gy, 'y')); }
+  function bedLabel() { return BED[0] + ' × ' + BED[1] + ' mm bed'; }
+  function fil() { return FILS.filter(function (f) { return f.id === S.fil; })[0] || FILS[0] || { id: null, name: '—', material: '', color: '#ccc' }; }
+  function utFlag(a, u) {
+    if (u.out) return { cls: 'st-chip-flag--out', t: 'Not in tray' };
+    if (a.tooLong.indexOf(u) >= 0) return { cls: '', t: 'Too long for this printer' };
+    if (a.needHalves.indexOf(u) >= 0) return { cls: '', t: 'Needs two halves' };
+    if (a.needSnug.indexOf(u) >= 0) return { cls: '', t: 'Needs Snug margin' };
+    if (a.halves && P2.depthSq(u, a.m) > a.max) return { cls: 'st-chip-flag--ok', t: 'Fits, in two halves' };
+    return { cls: 'st-chip-flag--ok', t: 'Fits' };
+  }
+  function flagged(a) { return function (u) { return a.tooLong.indexOf(u) >= 0 || a.needHalves.indexOf(u) >= 0 || a.needSnug.indexOf(u) >= 0; }; }
+  function stale() { S.rendered = null; }
+
+  /* ---------------- MEASURE ---------------- */
+  function fieldHTML(u, key, label, sub, min) {
+    var v = key === 'head' && !u.head ? '0' : ST.fmtText(u[key], ST.P.unit, ST.P.den), id = 'f-' + u.id + '-' + key;
+    return '<div class="st-field st-field--compact" data-dim="' + key + '" data-min="' + min + '"><label class="st-field__label" for="' + id + '">' + label + '<span class="st-field__sub">' + sub + '</span></label><input class="st-field__input" id="' + id + '" value="' + P2.esc(v) + '" autocomplete="off" spellcheck="false"><div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span><span class="st-field__tol"></span></div><p class="st-field__msg"></p></div>';
+  }
+  function cardHTML(u, i) {
+    var opts = Object.keys(P2.PRESETS).map(function (p) { return '<option' + ((p === u.preset || (!u.preset && p === u.name)) ? ' selected' : '') + '>' + p + '</option>'; }).join('');
+    return '<article class="st-panel st-utensil-card" data-u="' + u.id + '" aria-label="' + P2.esc(u.name) + '">' +
+      '<div class="st-utensil-card__head"><span class="st-id">' + (i + 1) + '</span><input class="st-input st-utensil-card__name" value="' + P2.esc(u.name) + '" aria-label="Utensil name" maxlength="40" data-name><select class="st-select st-utensil-card__preset" aria-label="Preset" data-preset>' + opts + '</select>' +
+      '<button class="st-icon-btn" type="button" data-dup aria-label="Duplicate ' + P2.esc(u.name) + '" title="Duplicate">' + IC('copy') + '</button><button class="st-icon-btn" type="button" data-del aria-label="Remove ' + P2.esc(u.name) + '" title="Remove"' + (S.utensils.length < 2 ? ' disabled' : '') + '>' + IC('trash') + '</button></div>' +
+      '<div class="st-utensil-card__art" data-art></div>' +
+      '<div class="st-utensil-card__fields">' + fieldHTML(u, 'len', 'Length', 'tip to tip', 40) + fieldHTML(u, 'handle', 'Handle', 'end width', 4) + fieldHTML(u, 'head', 'Head', 'widest', 0) + '</div>' +
+      '<div class="st-utensil-card__count"><span class="st-row__title" style="font-size:var(--st-text-sm);white-space:nowrap">How many</span><div class="st-stepper" data-count><button class="st-stepper__btn" type="button" aria-label="Fewer" data-step="-1">−</button><output class="st-stepper__value">' + u.count + '</output><button class="st-stepper__btn" type="button" aria-label="More" data-step="1">+</button></div><span class="st-utensil-card__stack" data-stack></span></div>' +
+      '<div class="st-utensil-card__status" data-status></div></article>';
+  }
+  function renderCards() {
+    var box = document.getElementById('cards');
+    box.innerHTML = S.utensils.map(cardHTML).join('') + (S.utensils.length < 14 ? '<div class="st-menu" style="display:flex"><button class="st-utensil-card--add st-btn st-btn--ghost" type="button" style="width:100%;height:auto;flex-direction:column" aria-haspopup="menu" aria-expanded="false" id="add-btn">' + IC('plus') + '<span>Add a utensil type</span><span class="st-row__sub">' + S.utensils.length + ' of 14</span></button><ul class="st-menu__list" role="menu" hidden id="add-menu">' + Object.keys(P2.PRESETS).map(function (p) { var q = P2.PRESETS[p]; return '<li role="none"><button class="st-menu__item" role="menuitem" type="button" data-add="' + p + '"><span class="st-menu__text"><span class="st-menu__title">' + p + '</span><span class="st-menu__sub">' + (p === 'Custom' ? 'Measure from scratch' : q.len + ' × ' + q.handle + ' × ' + (q.head || q.handle) + ' mm') + '</span></span></button></li>'; }).join('') + '</ul></div>' : '<p class="st-row__sub" style="align-self:center">14 types is the most one tray can hold.</p>');
+    box.querySelectorAll('.st-field[data-dim]').forEach(ST.bindField);
+    updateCards();
+  }
+  function updateCards() {
+    var a = an();
+    document.querySelectorAll('.st-utensil-card').forEach(function (c) {
+      var u = U(c.dataset.u); if (!u) return;
+      var art = c.querySelector('[data-art]'), foc = art.dataset.focus;
+      art.innerHTML = P2.utensilDiagram(u);
+      if (foc) { var sv = art.querySelector('svg'); sv.classList.add('has-focus'); var g = sv.querySelector('[data-dim="' + foc + '"]'); if (g) g.classList.add('is-focus'); }
+      var stack = u.count * 3, wall = S.u * 7, lim = DL && DL.binU != null ? DL.binU * 7 : null, st = c.querySelector('[data-stack]');
+      st.classList.toggle('is-warn', lim != null && stack > lim);
+      st.textContent = !u.count ? 'None yet. The slot is still made.' : u.count + ' stacked ≈ ' + stack + ' mm. ' + (lim != null && stack > lim ? 'That’s taller than the ' + lim + ' mm this drawer allows. Keep a few elsewhere or the drawer may not close.' : stack > wall ? 'About ' + (stack - wall) + ' mm above the ' + S.u + 'u (' + wall + ' mm) walls' + (lim != null ? ', inside the drawer’s ' + lim + ' mm.' : '.') : 'Below the ' + S.u + 'u (' + wall + ' mm) walls.');
+      var f = utFlag(a, u);
+      c.classList.toggle('is-out', !!u.out);
+      c.querySelector('[data-status]').innerHTML = '<span class="st-chip-flag ' + f.cls + '">' + f.t + '</span>' + (u.out ? '<span class="st-row__sub">Left out of this tray.</span><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-putback="' + u.id + '" style="margin-left:auto">Put back</button>' : f.cls === 'st-chip-flag--ok' ? '<span class="st-row__sub">Slot about ' + ST.num(P2.slotW(u, a.m)) + ' mm wide · ' + ST.num(u.len + 2 * a.m) + ' mm long</span>' : '<span class="st-row__sub">You’ll settle this in Arrange</span>');
+    });
+    measureSummary(a);
+  }
+  function issueLine(i) {
+    return i.kind === 'too-long' ? i.utensil.name + ' is too long for this printer' : i.kind === 'halves' ? i.utensils.map(function (x) { return x.name; }).join(', ') + ' need' + (i.utensils.length > 1 ? '' : 's') + ' a two-piece tray' :
+      i.kind === 'margin' ? (i.utensils.length ? i.utensils.map(function (x) { return x.name; }).join(', ') + ' need' + (i.utensils.length > 1 ? '' : 's') + ' Snug margin' : 'Slots need Snug margin to fit across') :
+      i.kind === 'too-few' ? 'A tray needs at least two utensil types' : i.slots + ' slots are too wide for one tray';
+  }
+  function measureSummary(a) {
+    document.getElementById('m-margin').textContent = a.mName + ' margin · ' + a.m + ' mm';
+    document.getElementById('m-tray').innerHTML = a.inTray.length ? P2.traySVG({ utensils: a.inTray, fp: a.fp, halves: a.trays[0] && a.trays[0].halves }, { m: a.m, mini: true, max: a.max, bed: BED, flag: flagged(a) }) : '';
+    document.getElementById('m-fp').textContent = fpText(a.fp); document.getElementById('m-fp-sub').innerHTML = fpReal(a.fp);
+    document.getElementById('m-slots').textContent = a.inTray.length; document.getElementById('m-slots-sub').textContent = a.out.length ? a.out.length + ' not in tray' : 'of 14 max';
+    document.getElementById('m-issues').innerHTML = a.issues.length ? '<p class="st-row__sub" style="font-size:var(--st-text-sm);color:var(--st-color-text)">' + a.issues.length + ' thing' + (a.issues.length > 1 ? 's' : '') + ' to settle in Arrange:</p><ul class="st-decisions">' + a.issues.map(function (i) { return '<li class="st-fit is-no">' + P2.esc(issueLine(i)) + '</li>'; }).join('') + '</ul>' : '<p class="st-fit">Everything fits ' + (a.trays[0].halves ? 'a ' + fpText(a.fp) + ' tray printed in two halves' : 'one ' + fpText(a.fp) + ' tray') + ' on the ' + bedLabel() + '.</p>';
+  }
+  var cards = document.getElementById('cards');
+  cards.addEventListener('st:dim', function (e) {
+    var c = e.target.closest('.st-utensil-card'); if (!c) return;
+    var u = U(c.dataset.u), k = e.detail.key;
+    if (k === 'head' && e.target.querySelector('.st-field__input').value.trim() === '0') { u.head = 0; e.target.querySelector('.st-field__msg').textContent = '0 means the same as the handle.'; }
+    else if (e.detail.mm) u[k] = Math.round(e.detail.mm * 10) / 10;
+    else return;
+    stale(); updateCards(); renderArrange();
+  });
+  cards.addEventListener('focusin', function (e) { var f = e.target.closest('.st-field'); if (!f) return; var art = e.target.closest('.st-utensil-card').querySelector('[data-art]'); art.dataset.focus = f.dataset.dim; var sv = art.querySelector('svg'); sv.classList.add('has-focus'); sv.querySelectorAll('.st-diagram__dim').forEach(function (g) { g.classList.toggle('is-focus', g.dataset.dim === f.dataset.dim); }); });
+  cards.addEventListener('focusout', function (e) { var c = e.target.closest('.st-utensil-card'); if (!c) return; var art = c.querySelector('[data-art]'); delete art.dataset.focus; var sv = art.querySelector('svg'); if (sv) { sv.classList.remove('has-focus'); sv.querySelectorAll('.is-focus').forEach(function (g) { g.classList.remove('is-focus'); }); } });
+  cards.addEventListener('input', function (e) { if (e.target.matches('[data-name]')) { U(e.target.closest('.st-utensil-card').dataset.u).name = e.target.value.trim() || 'Utensil'; stale(); } });
+  cards.addEventListener('change', function (e) {
+    if (!e.target.matches('[data-preset]')) return;
+    var u = U(e.target.closest('.st-utensil-card').dataset.u), p = P2.PRESETS[e.target.value];
+    u.kind = p.kind; u.len = p.len; u.handle = p.handle; u.head = p.head; u.preset = e.target.value; if (e.target.value !== 'Custom') u.name = e.target.value; stale(); renderCards();
+  });
+  cards.addEventListener('click', function (e) {
+    var c = e.target.closest('.st-utensil-card'), t;
+    if ((t = e.target.closest('[data-step]')) && c) { var u = U(c.dataset.u); u.count = Math.max(0, Math.min(99, u.count + (+t.dataset.step))); t.parentNode.querySelector('output').textContent = u.count; updateCards(); return; }
+    if (e.target.closest('[data-dup]')) { if (S.utensils.length >= 14) { ST.toast('14 types is the most one tray can hold.'); return; } var o = U(c.dataset.u), n = clone(o); n.id = 'u' + (++uid); n.name = (o.name + ' (copy)').slice(0, 40); n.out = false; S.utensils.splice(S.utensils.indexOf(o) + 1, 0, n); stale(); renderCards(); say(n.name + ' added.'); return; }
+    if (e.target.closest('[data-del]')) { var d = U(c.dataset.u); S.utensils = S.utensils.filter(function (x) { return x !== d; }); stale(); renderCards(); ST.toast(P2.esc(d.name) + ' removed.'); return; }
+    if ((t = e.target.closest('[data-putback]'))) { U(t.dataset.putback).out = false; stale(); refresh(); return; }
+    if (e.target.closest('#add-btn')) { var m = document.getElementById('add-menu'), open = m.hidden; m.hidden = !open; e.target.closest('#add-btn').setAttribute('aria-expanded', open); if (open) m.querySelector('button').focus(); return; }
+    if ((t = e.target.closest('[data-add]'))) { addPreset(t.dataset.add); }
+  });
+  function addPreset(name) { var p = P2.PRESETS[name]; S.utensils.push({ id: 'u' + (++uid), name: name === 'Custom' ? 'Utensil' : name, preset: name, kind: p.kind, len: p.len, handle: p.handle, head: p.head, count: 4 }); stale(); renderCards(); refresh(); say(name + ' added as slot ' + S.utensils.length + '.'); }
+
+  /* ---------------- ARRANGE ---------------- */
+  var dragSlot = null;
+  function designsForFit() {
+    return (project.bins || []).filter(function (b) { return S.addedIds.indexOf(b.id) < 0; }).map(function (b) { return { id: b.id, name: b.name, w: b.w, d: b.d, u: b.h, qty: b.qty, fil: b.filament, kind: b.kind || 'bin' }; });
+  }
+  function renderArrange() {
+    var a = an();
+    document.querySelectorAll('#margin [data-m]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === S.margin)); });
+    document.getElementById('h-val').textContent = S.u + 'u';
+    document.getElementById('h-sub').innerHTML = ST.pri(S.u * 7) + ' walls' + (DL && DL.binU != null ? ' · drawer fits ' + DL.binU + 'u' : '');
+    document.getElementById('round').setAttribute('aria-checked', String(S.round));
+    document.getElementById('showbed').setAttribute('aria-checked', String(S.showBed));
+    var flag = flagged(a);
+    document.getElementById('slots').innerHTML = a.inTray.map(function (u, i) {
+      var bad = flag(u), tag = a.tooLong.indexOf(u) >= 0 ? 'too long' : a.needHalves.indexOf(u) >= 0 ? 'halves' : 'snug';
+      return '<li class="st-slot-row" tabindex="0" data-row="' + u.id + '" aria-label="Slot ' + (i + 1) + ', ' + P2.esc(u.name) + '"><span class="st-shelf__grip" data-rowgrip aria-hidden="true" style="height:24px">' + IC('drag') + '</span><span class="st-id">' + (i + 1) + '</span><span class="st-slot-row__name">' + P2.esc(u.name) + '</span><span class="st-slot-row__w">' + (bad ? '<span class="st-chip-flag" title="Needs a decision">' + tag + '</span> ' : '') + ST.num(P2.slotW(u, a.m)) + ' mm</span><span class="st-slot-row__moves"><button class="st-icon-btn" type="button" data-move="-1" aria-label="Move up"' + (i ? '' : ' disabled') + '>↑</button><button class="st-icon-btn" type="button" data-move="1" aria-label="Move down"' + (i < a.inTray.length - 1 ? '' : ' disabled') + '>↓</button></span></li>';
+    }).join('');
+    document.getElementById('out').innerHTML = a.out.length ? a.out.map(function (u) { return '<li><span><b>' + P2.esc(u.name) + '</b><br><span class="st-out-list__why">' + ST.num(u.len) + ' mm long.</span></span><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-putback="' + u.id + '">Put back</button></li>'; }).join('') : '<li class="st-out-list__why">Every utensil has a slot.</li>';
+    var box = document.getElementById('tray');
+    if (a.split) box.innerHTML = '<div class="st-tray-pair">' + a.trays.map(function (t, k) { return '<div class="st-tray-pair__item"><span class="st-label">Tray ' + (k + 1) + ' · slots ' + t.from + '–' + t.to + ' · ' + fpText(t.fp) + (t.halves ? ' · two halves' : '') + '</span><div>' + P2.traySVG(t, { m: a.m, max: a.max, bed: BED, offset: t.from - 1, showBed: S.showBed }) + '</div></div>'; }).join('') + '</div>';
+    else box.innerHTML = a.inTray.length ? P2.traySVG({ utensils: a.inTray, fp: a.fp, halves: a.trays[0].halves }, { m: a.m, max: a.max, bed: BED, flag: flag, showBed: S.showBed, drag: dragSlot && !dragSlot.list ? dragSlot.i : null }) : '';
+    document.getElementById('a-fp').textContent = a.split ? a.trays.map(function (t) { return fpText(t.fp); }).join(' + ') : fpText(a.fp);
+    document.getElementById('a-fp-sub').innerHTML = a.split ? a.trays.map(function (t, k) { return 'Tray ' + (k + 1) + ': ' + fpReal(t.fp); }).join('<br>') : fpReal(a.fp) + '<br>slots need ' + ST.num(a.fp.wmm) + ' × ' + ST.num(a.fp.dmm) + ' mm';
+    var bedEl = document.getElementById('fit-bed'), drEl = document.getElementById('fit-drawer'), trays = a.split ? a.trays : [a.trays[0] || { fp: a.fp }];
+    var fitOne = function (t) { return P2.bedFits(t.fp.gx, t.fp.gy, BED); }, allFit = trays.every(function (t) { return fitOne(t) || t.halves; });
+    bedEl.classList.toggle('is-no', !allFit);
+    var t0 = trays[0], spare = P2.bedSpare(a.fp, BED);
+    bedEl.innerHTML = '<span>' + (!allFit ? 'Doesn’t fit the ' + bedLabel() + ' yet: <b>' + ST.num(P2.sqMM(a.fp.gx)) + ' × ' + ST.num(P2.sqMM(a.fp.gy, 'y')) + ' mm</b>. See below.' :
+      trays.length > 1 ? 'Fits the ' + bedLabel() + ', each tray' + (trays.some(function (t) { return t.halves; }) ? ' (some in two halves)' : '') + '.' :
+      t0.halves ? 'Prints as two halves on the ' + bedLabel() + ': back ' + t0.halves.back + ' squares and front ' + t0.halves.front + ' squares, clipped together.' :
+      'Fits the ' + bedLabel() + ': <b>' + ST.num(P2.sqMM(a.fp.gx)) + ' × ' + ST.num(P2.sqMM(a.fp.gy, 'y')) + ' mm</b>' + (spare ? ' with ' + spare.join(' × ') + ' mm spare' : '') + '.') + '</span>';
+    if (!DL) { drEl.classList.add('is-no'); drEl.innerHTML = '<span>Measure the drawer in the Planner to check the tray fits it.</span>'; }
+    else {
+      var designs = designsForFit(), placed = (project.placements || []).filter(function (p) { return designs.some(function (d) { return d.id === p.bin; }); }).map(function (p) { return { key: p.key, design: p.bin, x: p.x, y: p.y, rot: p.rot }; });
+      var LA = P2.analyzeLayout(DL, placed, designs), occ = clone(LA.occ), spots = trays.map(function (t) { var s = P2.freeSpot(DL, occ, t.fp.gx, t.fp.gy); if (s) { var w = s.rot ? t.fp.gy : t.fp.gx, d = s.rot ? t.fp.gx : t.fp.gy; for (var x = s.x; x < s.x + w; x++) for (var y = s.y; y < s.y + d; y++) occ[x + ',' + y] = 1; } return s; });
+      var okD = spots.every(Boolean); drEl.classList.toggle('is-no', !okD);
+      drEl.innerHTML = '<span>' + (okD ? 'Fits the drawer: ' + trays.map(function (t, k) { return '<b>' + fpText(t.fp) + '</b> free at column ' + (spots[k].x + 1) + ', row ' + (spots[k].y + 1); }).join('; ') + ' of the ' + DL.nx + ' × ' + DL.ny + ' grid' : 'No free ' + trays.map(function (t) { return fpText(t.fp); }).join(' + ') + ' block in the drawer right now (' + LA.gaps.length + ' squares empty). You can rearrange in Layout.') + '</span>';
+    }
+    var dec = [];
+    if (S.prevMargin && S.margin === 'Snug') dec.push('<li class="st-decision">Snug margin, 3 mm<button type="button" data-undo="margin">Undo</button></li>');
+    if (S.halves) dec.push('<li class="st-decision">Print in two halves that clip together<button type="button" data-undo="halves">Undo</button></li>');
+    a.out.forEach(function (u) { dec.push('<li class="st-decision">' + P2.esc(u.name) + ' left out<button type="button" data-putback="' + u.id + '">Put back</button></li>'); });
+    if (a.split) dec.push('<li class="st-decision">Split into ' + a.trays.length + ' trays<button type="button" data-undo="split">Undo</button></li>');
+    document.getElementById('decisions').innerHTML = dec.join('');
+    document.getElementById('a-count').textContent = a.issues.length ? a.issues.length + ' to settle' : 'Ready';
+    document.getElementById('a-issues').innerHTML = a.issues.length ? a.issues.map(P2.issueHTML).join('') : '<p class="st-fit"><span>Ready to print. ' + (a.split ? a.trays.length + ' trays, each fitting the bed.' : 'One ' + fpText(a.fp) + ' tray with ' + a.keep.length + ' slots' + (a.trays[0].halves ? ', in two halves.' : '.')) + '</span></p>';
+  }
+  function reorder(id, delta) {
+    var a = an(), list = a.inTray, i = -1; list.forEach(function (u, k) { if (u.id === id) i = k; });
+    var j = i + delta; if (i < 0 || j < 0 || j >= list.length) return false;
+    var u = list[i], v = list[j], ai = S.utensils.indexOf(u), aj = S.utensils.indexOf(v);
+    S.utensils[ai] = v; S.utensils[aj] = u; stale(); say(u.name + ' is now slot ' + (j + 1) + '.'); return true;
+  }
+  function refocus(sel) { var n = document.querySelector(sel); if (n) n.focus(); }
+  document.getElementById('margin').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (!b) return; S.prevMargin = null; S.margin = b.dataset.m; stale(); refresh(); });
+  document.getElementById('height').addEventListener('click', function (e) { var b = e.target.closest('[data-step]'); if (!b) return; S.u = Math.max(2, Math.min(binU, S.u + (+b.dataset.step))); stale(); refresh(); });
+  document.getElementById('round').addEventListener('click', function () { S.round = !S.round; stale(); refresh(); });
+  document.getElementById('showbed').addEventListener('click', function () { S.showBed = !S.showBed; refresh(); });
+  var slotsEl = document.getElementById('slots');
+  slotsEl.addEventListener('click', function (e) { var b = e.target.closest('[data-move]'); if (b) { var id = b.closest('[data-row]').dataset.row; if (reorder(id, +b.dataset.move)) refresh(); } });
+  slotsEl.addEventListener('keydown', function (e) { var r = e.target.closest('[data-row]'); if (!r || !e.altKey) return; var d = (e.key === 'ArrowUp' || e.key === 'ArrowLeft') ? -1 : (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : 0; if (!d) return; e.preventDefault(); if (reorder(r.dataset.row, d)) { refresh(); refocus('[data-row="' + r.dataset.row + '"]'); } });
+  slotsEl.addEventListener('pointerdown', function (e) { var g = e.target.closest('[data-rowgrip]'); if (!g) return; e.preventDefault(); var row = g.closest('[data-row]'); dragSlot = { id: row.dataset.row, list: true }; row.classList.add('is-dragging'); slotsEl.setPointerCapture(e.pointerId); });
+  slotsEl.addEventListener('pointermove', function (e) {
+    if (!dragSlot || !dragSlot.list) return;
+    var rows = Array.prototype.slice.call(slotsEl.querySelectorAll('[data-row]')), i = -1; rows.forEach(function (r, k) { if (r.dataset.row === dragSlot.id) i = k; });
+    var prev = rows[i - 1], next = rows[i + 1], moved = false;
+    if (prev && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) moved = reorder(dragSlot.id, -1);
+    else if (next && e.clientY > next.getBoundingClientRect().top + next.offsetHeight / 2) moved = reorder(dragSlot.id, 1);
+    if (moved) { renderArrange(); var r = slotsEl.querySelector('[data-row="' + dragSlot.id + '"]'); if (r) r.classList.add('is-dragging'); }
+  });
+  slotsEl.addEventListener('pointerup', function () { if (dragSlot && dragSlot.list) { dragSlot = null; refresh(); } });
+  var trayEl = document.getElementById('tray');
+  function svgX(e) { var svg = trayEl.querySelector('svg'), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()).x; }
+  trayEl.addEventListener('pointerdown', function (e) { var s = e.target.closest('.st-tray__slot'); var a = an(); if (!s || a.split) return; dragSlot = { i: +s.dataset.slot, id: a.inTray[+s.dataset.slot].id }; trayEl.setPointerCapture(e.pointerId); renderArrange(); });
+  trayEl.addEventListener('pointermove', function (e) {
+    if (!dragSlot || dragSlot.list) return;
+    var a = an(), sl = P2.trayLayout(a.inTray, a.m, a.fp.gx, a.fp.gy), x = svgX(e), i = dragSlot.i;
+    if (i > 0 && x < sl[i - 1].cx) { reorder(dragSlot.id, -1); dragSlot.i--; renderArrange(); }
+    else if (i < sl.length - 1 && x > sl[i + 1].cx) { reorder(dragSlot.id, 1); dragSlot.i++; renderArrange(); }
+  });
+  trayEl.addEventListener('pointerup', function () { if (dragSlot && !dragSlot.list) { dragSlot = null; refresh(); } });
+  trayEl.addEventListener('keydown', function (e) { var s = e.target.closest('.st-tray__slot'); if (!s || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return; e.preventDefault(); var id = an().inTray[+s.dataset.slot].id; if (reorder(id, e.key === 'ArrowLeft' ? -1 : 1)) { refresh(); var n = -1; an().inTray.forEach(function (u, k) { if (u.id === id) n = k; }); refocus('#tray [data-slot="' + n + '"]'); } });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-fix],[data-undo],[data-putback]'); if (!t || t.closest('.st-utensil-card')) return;
+    if (t.dataset.fix === 'snug') { S.prevMargin = S.margin; S.margin = 'Snug'; say('Margin set to Snug, 3 mm.'); }
+    if (t.dataset.fix === 'halves') { S.halves = true; say('The tray will print as two halves that clip together.'); }
+    if (t.dataset.fix === 'leave-out') { var u = U(t.dataset.id); u.out = true; say(u.name + ' left out. It stays listed as not in tray.'); }
+    if (t.dataset.fix === 'split') { S.split = true; say('Split into two trays.'); }
+    if (t.dataset.undo === 'margin') { S.margin = S.prevMargin || 'Normal'; S.prevMargin = null; }
+    if (t.dataset.undo === 'halves') S.halves = false;
+    if (t.dataset.undo === 'split') S.split = false;
+    if (t.dataset.putback) U(t.dataset.putback).out = false;
+    stale(); refresh();
+  });
+
+  /* ---------------- PRINT ---------------- */
+  function trayBins(a) {
+    var trays = a.split ? a.trays : [a.trays[0]], n = trays.length, taken = (project.bins || []).map(function (b) { return b.id; });
+    function newId() { var k = 1; while (taken.indexOf('b' + k) >= 0) k++; taken.push('b' + k); return 'b' + k; }
+    function clean(u, out) { return { id: u.id, name: u.name, kind: u.kind || 'custom', preset: u.preset || '', len: u.len, handle: u.handle, head: u.head || 0, count: u.count || 0, out: !!out }; }
+    return trays.map(function (t, k) {
+      var id = S.addedIds[k] || newId();
+      var us = t.utensils.map(function (u) { return clean(u, false); }).concat(k === 0 ? a.out.map(function (u) { return clean(u, true); }) : []);
+      var base = editing && k === 0 ? editing.name : 'Silverware tray';
+      return { id: id, name: n > 1 ? (base + ' ' + (k + 1)).slice(0, 40) : base, kind: 'tray', h: S.u, qty: 1, filament: S.fil,
+               magnets: editing ? editing.magnets : plateMagnets(), lip: true,
+               tray: { utensils: us, margin: S.margin, round: S.round, halves: !!t.halves } };
+    });
+  }
+  function saveToDrawer() {
+    var a = an(), mine = trayBins(a), ids = mine.map(function (b) { return b.id; });
+    // replace this wizard's earlier bins in place; append new ones at the end
+    var out = [], placedMine = false;
+    (project.bins || []).forEach(function (b) {
+      if (S.addedIds.indexOf(b.id) >= 0 || ids.indexOf(b.id) >= 0) { if (!placedMine) { out = out.concat(mine); placedMine = true; } }
+      else out.push(b);
+    });
+    if (!placedMine) out = out.concat(mine);
+    return ST.api('PATCH', 'projects/' + pid, { bins: out }).then(function (doc) {
+      project = doc; S.added = true; S.addedIds = ids;
+      if (history.replaceState) history.replaceState(null, '', location.pathname + '?p=' + pid + '&bin=' + ids[0] + '#' + S.step);
+      editing = doc.bins.filter(function (b) { return b.id === ids[0]; })[0];
+      return ids;
+    });
+  }
+  function setRender(s, label, time) {
+    var R = document.getElementById('render'); R.dataset.state = s; R.querySelector('.st-render__label').textContent = label; R.querySelector('.st-render__time').textContent = time || '';
+    document.getElementById('render-btn').hidden = s === 'rendering' || s === 'ready';
+    document.getElementById('p-export').disabled = document.getElementById('p-slicer').disabled = s !== 'ready';
+    if (vp) vp.setStale(s !== 'ready');
+  }
+  function startRender() {
+    var a = an(); if (!a.ready) return;
+    var mine = ++rseq, t0 = performance.now(), specs = trayBins(a), f = fil();
+    clearInterval(tick);
+    setRender('rendering', 'Rendering', '0.0 s');
+    tick = setInterval(function () { document.querySelector('#render .st-render__time').textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
+    if (!vpReady) vpReady = import('./js/viewport.js').then(function (m) { vp = m.createViewport(document.getElementById('viewport')); return vp; });
+    var halves = specs.length === 1 && a.trays[0].halves ? a.trays[0].halves : null;
+    var jobs = halves ? [{ bin: specs[0], part: 'back' }, { bin: specs[0], part: 'front' }] : specs.map(function (b) { return { bin: b }; });
+    Promise.all([vpReady].concat(jobs.map(function (j) { return ST.api('POST', 'projects/' + pid + '/bins/render', j); }))).then(function (r) {
+      if (mine !== rseq) return null;
+      var files = r.slice(1);
+      if (halves) {  // the two halves pulled 25 mm apart, so the join and its clips are visible
+        var backD = P2.sqMM(halves.back, 'y') + 3.4, gap = 25, W = P2.sqMM(a.trays[0].fp.gx);
+        return vp.loadAssembly({ parts: [
+          { url: '/api/projects/' + pid + '/files/cache/' + files[0].file, x: 0, y: 0, color: f.color, kind: f.material },
+          { url: '/api/projects/' + pid + '/files/cache/' + files[1].file, x: 0, y: backD + gap, color: f.color, kind: f.material }
+        ], drawer: { W: W, D: backD + gap + P2.sqMM(halves.front, 'y') + 3.4, fx: 0, fy: 0, ghost: false } }).then(function () { return files; });
+      }
+      if (files.length === 1) return vp.loadSTL('/api/projects/' + pid + '/files/cache/' + files[0].file).then(function () { vp.setColor(f.color, f.material); return files; });
+      var x = 0, parts = files.map(function (fl, k) { var p = { url: '/api/projects/' + pid + '/files/cache/' + fl.file, x: x, y: 0, color: f.color, kind: f.material }; x += P2.sqMM(specs[k].w || a.trays[k].fp.gx) + 30; return p; });
+      return vp.loadAssembly({ parts: parts, drawer: { W: x - 30, D: P2.sqMM(Math.max.apply(null, a.trays.map(function (t) { return t.fp.gy; })), 'y'), fx: 0, fy: 0, ghost: false } }).then(function () { return files; });
+    }).then(function (files) {
+      if (!files || mine !== rseq) return;
+      clearInterval(tick); S.rendered = true;
+      setRender('ready', 'Ready', files.every(function (x) { return x.cached; }) ? 'from cache' : 'rendered in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    }, function (e) {
+      if (mine !== rseq) return;
+      clearInterval(tick); setRender('error', 'OpenSCAD stopped: ' + e.message.split('. ')[0], '');
+    });
+  }
+  function renderPrint() {
+    var a = an(), trays = a.split ? a.trays : [a.trays[0] || { from: 1, to: a.keep.length, utensils: a.keep, fp: a.fpKeep }];
+    var name = function (k) { return (editing ? editing.name : 'Silverware tray') + (trays.length > 1 ? ' ' + (k + 1) : ''); };
+    document.getElementById('p-title').textContent = trays.map(function (t, k) { return name(k) + ' · ' + fpText(t.fp) + ' · ' + S.u + 'u'; }).join(' + ');
+    document.getElementById('p-summary').innerHTML = trays.map(function (t, k) {
+      return '<div class="st-panel__body" style="border-bottom:1px solid var(--st-color-border)"><div class="st-row"><span class="st-row__title">' + P2.esc(name(k)) + '</span><span class="st-kind">' + IC('utensils') + 'Tray</span></div><div class="st-kv" style="grid-template-columns:84px 1fr"><span>Footprint</span><span><b class="st-num">' + fpText(t.fp) + '</b> <span class="st-muted">· ' + fpReal(t.fp) + '</span></span><span>Prints as</span><span>' + (t.halves ? 'Two halves: back ' + t.halves.back + ' + front ' + t.halves.front + ' squares, clipped together' : 'One piece') + '</span><span>Height</span><span><b class="st-num">' + S.u + 'u</b> <span class="st-muted">· ' + ST.pri(S.u * 7) + '</span></span><span>Margin</span><span>' + a.mName + ' · ' + a.m + ' mm</span><span>Slots</span><span>' + t.utensils.map(function (u, i) { return (t.from + i) + ' ' + P2.esc(u.name); }).join(' · ') + '</span></div></div>';
+    }).join('') + (a.out.length ? '<div class="st-panel__body"><span class="st-row__sub">Not in tray: ' + a.out.map(function (u) { return P2.esc(u.name); }).join(', ') + '</span></div>' : '');
+    document.getElementById('fil').innerHTML = FILS.map(function (f) { return '<button type="button" aria-pressed="' + (S.fil === f.id) + '" data-fil="' + f.id + '" title="' + P2.esc(f.name) + ' · ' + f.material + '"><span class="st-swatch" style="display:block;background:' + f.color + '"></span></button>'; }).join('');
+    var f = fil(); document.getElementById('fil-name').textContent = f.name + ' · ' + f.material;
+    if (vp) vp.setColor(f.color, f.material);
+    var add = document.getElementById('p-add');
+    if (a.issues.length) { add.innerHTML = '<p class="st-fit is-no"><span>' + a.issues.length + ' thing' + (a.issues.length > 1 ? 's' : '') + ' to settle in Arrange before this tray can print.</span></p><button class="st-btn" type="button" data-goto="arrange">Back to Arrange</button>'; rseq++; clearInterval(tick); setRender('idle', 'Waiting on Arrange', ''); document.getElementById('render-btn').hidden = true; return; }
+    if (S.added && S.saved) {
+      add.innerHTML = '<p class="st-fit"><span><b>' + trays.map(function (t, k) { return P2.esc(name(k)) + ' ' + fpText(t.fp); }).join('</b> and <b>') + '</b> ' + (trays.length > 1 ? 'are' : 'is') + ' in this drawer’s bins' + (editing && !S.justAdded ? '.' : ' and waiting on the Layout shelf.') + '</span></p><div class="st-btn-stack"><a class="st-btn st-btn--primary st-btn--split" href="layout-editor.html?p=' + pid + '">Place it in Layout ' + IC('chevron-right') + '</a><a class="st-btn st-btn--split" href="print-list.html?p=' + pid + '">See the print list</a><a class="st-btn st-btn--ghost" href="bin-builder.html?p=' + pid + '">Back to Bins</a></div>' +
+        '<button class="st-btn st-btn--sm st-btn--ghost" type="button" id="p-addbtn">Save changes</button>';
+    } else {
+      add.innerHTML = '<p class="st-row__sub" style="font-size:var(--st-text-sm);color:var(--st-color-text);line-height:1.45">' + (editing ? 'Saves your changes to <b>' + P2.esc(editing.name) + '</b>' : 'Adds ' + (trays.length > 1 ? trays.length + ' trays' : 'the tray') + ' to <b>' + P2.esc(project.name) + '</b>. ' + (trays.length > 1 ? 'They' : 'It') + ' will wait on the Layout shelf and appear on the print list') + '.</p><p class="st-fit" id="p-fit"></p><button class="st-btn st-btn--primary st-btn--lg st-btn--split" type="button" id="p-addbtn">' + (editing ? 'Save tray' : 'Add to drawer') + '<span class="st-btn__meta">' + trays.length + ' bin' + (trays.length > 1 ? 's' : '') + '</span></button><p class="st-row__sub">Rendering is only needed for the 3D check and export. You can add the tray first.</p>';
+      var fd = document.getElementById('fit-drawer'), pf = document.getElementById('p-fit'); pf.innerHTML = fd.innerHTML; pf.className = fd.className;
+    }
+    if (S.rendered === null && document.getElementById('render').dataset.state !== 'rendering') { S.rendered = false; startRender(); }
+  }
+  document.getElementById('render-btn').addEventListener('click', startRender);
+  function exportTrays() {
+    return saveToDrawer().then(function (ids) { S.saved = true; return Promise.all(ids.map(function (id) { return ST.api('POST', 'projects/' + pid + '/bins/' + id + '/export'); })); });
+  }
+  document.getElementById('p-export').addEventListener('click', function () {
+    var b = this; b.disabled = true;
+    exportTrays().then(function (rs) {
+      var files = [].concat.apply([], rs.map(function (r) { return r.files; }));
+      var t = ST.toast('Saved ' + files.map(ST.esc).join(', ') + '.', 'success', 'Show folder'), x = t && t.querySelector('.st-toast__action');
+      if (x) x.addEventListener('click', function () { ST.reveal(pid, 'exports'); });
+      renderPrint();
+    }, function (e) { ST.toast('Export failed: ' + ST.esc(e.message), 'error'); }).then(function () { b.disabled = document.getElementById('render').dataset.state !== 'ready'; });
+  });
+  document.getElementById('p-slicer').addEventListener('click', function () {
+    var b = this; b.disabled = true;
+    exportTrays().then(function (rs) {
+      var files = [].concat.apply([], rs.map(function (r) { return r.files; }));
+      return ST.api('POST', 'projects/' + pid + '/open', { files: files });
+    }).then(function (r) { ST.openedToast(r); renderPrint(); },
+      function (e) { ST.toast(ST.esc(e.message), 'error'); }).then(function () { b.disabled = document.getElementById('render').dataset.state !== 'ready'; });
+  });
+  document.getElementById('step-print').addEventListener('click', function (e) {
+    var f = e.target.closest('[data-fil]'); if (f) { S.fil = f.dataset.fil; renderPrint(); return; }
+    if (e.target.closest('#p-addbtn')) {
+      var wasNew = !S.added && !editing;
+      saveToDrawer().then(function () {
+        S.saved = true; S.justAdded = wasNew; renderPrint();
+        var t = ST.toast(wasNew ? 'Added to ' + ST.esc(project.name) + '. It’s on the Layout shelf.' : 'Tray saved.', 'success', wasNew ? 'Open Layout' : null), x = t && t.querySelector('.st-toast__action');
+        if (x) x.addEventListener('click', function () { location.href = 'layout-editor.html?p=' + pid; });
+      }, function (err) { ST.toast(ST.esc(err.message), 'error'); });
+    }
+  });
+
+  /* ---------------- steps ---------------- */
+  var ORDER = ['measure', 'arrange', 'print'];
+  function go(step) {
+    S.step = step;
+    ORDER.forEach(function (s, i) {
+      document.getElementById('step-' + s).hidden = s !== step;
+      var li = document.querySelector('[data-step="' + s + '"]').closest('li');
+      if (s === step) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+      li.classList.toggle('is-done', i < ORDER.indexOf(step)); li.querySelector('button').setAttribute('aria-selected', String(s === step));
+    });
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search + '#' + step);
+    refresh();
+  }
+  function refresh() { updateCards(); renderArrange(); if (S.step === 'print') renderPrint(); }
+  document.getElementById('steps').addEventListener('click', function (e) { var b = e.target.closest('[data-step]'); if (b) go(b.dataset.step); });
+  document.addEventListener('click', function (e) { var g = e.target.closest('[data-goto]'); if (g) go(g.dataset.goto); });
+  window.addEventListener('hashchange', function () { var h = location.hash.replace('#', ''); if (ORDER.indexOf(h) >= 0 && h !== S.step) go(h); });
+  document.addEventListener('st:prefs', function () { setTimeout(refresh, 0); });
+
+  ST.api('GET', 'settings').then(function (st) {
+    FILS = st.filaments; BED = [st.printer.bed_w, st.printer.bed_d]; BEDNAME = st.printer.name;
+    editing = editId ? (project.bins || []).filter(function (b) { return b.id === editId && b.kind === 'tray'; })[0] : null;
+    S = editing ? fromBin(editing) : fresh();
+    if (editing) { S.added = true; S.saved = true; document.querySelector('.st-wizard__title').textContent = editing.name; }
+    var hash = location.hash.replace('#', '');
+    renderCards(); go(ORDER.indexOf(hash) >= 0 ? hash : S.step);
+  });
+});
+</script>
+</body>
+</html>

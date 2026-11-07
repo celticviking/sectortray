@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Print List · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script src="js/st.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  <span class="st-project-tag" hidden></span>
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html" aria-current="page">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+  <div class="st-page-head">
+    <div>
+      <h1 class="st-page-head__title">Print List</h1>
+      <p class="st-page-head__meta" id="meta">Loading…</p>
+    </div>
+    <div class="st-page-head__actions">
+      <div class="st-seg st-seg--text" role="group" aria-label="Show parts or plates" id="view" hidden><button class="st-seg__btn" type="button" data-view="parts" aria-pressed="true">Parts <span class="st-seg__count" id="view-parts"></span></button><button class="st-seg__btn" type="button" data-view="plates" aria-pressed="false">Plates <span class="st-seg__count" id="view-plates"></span></button></div>
+      <button class="st-btn" type="button" id="open-all"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-slicer"/></svg> Open all in <span data-slicer-name>PrusaSlicer</span></button>
+      <button class="st-btn st-btn--primary" type="button" id="export-all"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-export"/></svg> <span id="export-all-label">Export all</span> <span class="st-btn__meta" id="export-all-meta"></span></button>
+    </div>
+  </div>
+  <section class="st-panel" id="parts-panel">
+    <div class="st-panel__head"><h2 class="st-tag">Parts</h2><span class="st-panel__aside">Suggested: <b>PETG</b> if anything warm goes in (fresh from the dishwasher, a car in summer). <b>PLA</b> is fine for everything else.</span><span class="st-panel__slot" aria-hidden="true"></span></div>
+    <table class="st-table">
+      <thead><tr><th class="is-num" style="width:40px">#</th><th style="width:56px">ID</th><th>Part</th><th class="is-num" style="width:56px">Qty</th><th>Size</th><th>Height</th><th>Filament</th><th>Status</th><th style="width:120px">Printed</th><th style="width:96px"><span class="st-visually-hidden">Actions</span></th></tr></thead>
+      <tbody id="parts"></tbody>
+    </table>
+    <div class="st-empty" id="parts-empty" hidden><h2 class="st-empty__title">Nothing to print yet</h2><p class="st-empty__text">Measure the drawer in the Planner and add bins on the Bins screen. Every part shows up here.</p></div>
+  </section>
+  <section class="st-panel" id="plates-panel" hidden>
+    <div class="st-panel__head"><h2 class="st-tag">Plates</h2><span class="st-panel__aside" id="plates-aside"></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+    <table class="st-table">
+      <thead><tr><th class="is-num" style="width:40px">#</th><th>On this bed</th><th>Filament</th><th style="width:120px">Printed</th><th style="width:96px"><span class="st-visually-hidden">Actions</span></th></tr></thead>
+      <tbody id="plates"></tbody>
+    </table>
+  </section>
+</main>
+</div>
+<script>
+document.addEventListener('st:shell', function (ev) {
+  var project = ev.detail.project;
+  if (!project) { location.replace('projects.html?first=1'); return; }
+  var pid = encodeURIComponent(project.id), data = null, filaments = [], busy = {}, slicer = { found: true }, maxH = null;
+  var tbody = document.getElementById('parts');
+
+  function fil(id) { return filaments.filter(function (f) { return f.id === id; })[0] || filaments[0] || { id: null, name: '—', material: '', color: 'transparent' }; }
+  function when(iso) { if (!iso) return ''; var d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString(); }
+  var STATUS = { done: ['done', 'Exported'], none: ['none', 'Not exported'], stale: ['stale', 'Changed since export'], busy: ['busy', 'Rendering…'], error: ['error', 'Render failed'] };
+
+  function partGrams(p) { return ST.grams(p.volume, fil(p.filament).material, p.kind); }
+  function filamentSelect(p) {
+    var f = fil(p.filament), g = partGrams(p);
+    return '<span class="st-material"><span class="st-material__swatch" style="background:' + f.color + '"></span>' +
+      '<select class="st-select st-select--bare" data-filament aria-label="Filament for ' + ST.esc(p.name) + '">' +
+      filaments.map(function (x) { return '<option value="' + x.id + '"' + (x.id === f.id ? ' selected' : '') + '>' + ST.esc(x.name) + ' · ' + x.material + '</option>'; }).join('') +
+      '</select></span>' +
+      (g == null ? '' : '<span class="st-table__sub" title="Filament estimate for one copy (0.2 mm layers, 15% infill)">' + ST.gramsText(g) + (p.qty > 1 ? ' each' : '') + '</span>');
+  }
+  /* printed: a tick for one copy, a counter for several; a tick on a part that has changed since is an older version */
+  function printedCell(p) {
+    var old = p.printed_old, name = ST.esc(p.name);
+    var note = old ? '<span class="st-table__sub st-warn-text" title="This part changed after you marked it printed. What you printed is the earlier version; ticks you change now count for this version.">older version</span>' : '';
+    if (p.qty === 1) {
+      return '<button class="st-printed' + (p.printed ? ' is-on' : '') + (old ? ' is-old' : '') + '" type="button" data-printed="' + (p.printed ? 0 : 1) + '" aria-pressed="' + !!p.printed + '" aria-label="Printed: ' + name + '" title="' + (p.printed ? 'Printed. Click to clear' : 'Mark as printed') + '"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-check"/></svg></button>' + note;
+    }
+    return '<span class="st-printcount' + (p.printed >= p.qty ? ' is-on' : '') + (old ? ' is-old' : '') + '">' +
+      '<button type="button" data-printed="' + (p.printed - 1) + '"' + (p.printed ? '' : ' disabled') + ' aria-label="One fewer printed: ' + name + '">\u2212</button>' +
+      '<span>' + p.printed + ' of ' + p.qty + '</span>' +
+      '<button type="button" data-printed="' + (p.printed + 1) + '"' + (p.printed < p.qty ? '' : ' disabled') + ' aria-label="One more printed: ' + name + '">+</button></span>' + note;
+  }
+  function row(p, n) {
+    var st = busy[p.file] || p.status, s = STATUS[st] || STATUS.none;
+    var height = p.part === 'keys' ? '<span class="st-muted">Keys · ' + ST.pri(p.h) + '</span>' : p.kind !== 'baseplate' ? p.u + 'u <span class="st-muted">· ' + ST.pri(p.h) + '</span>' : '<span class="st-muted">Plate · ' + ST.pri(p.h) + '</span>';
+    var label = s[1] + (st === 'done' && p.exported ? ' ' + when(p.exported) : '');
+    return '<tr data-file="' + ST.esc(p.file) + '"' + (p.printed >= p.qty && !p.printed_old ? ' class="is-printed"' : '') + '><td class="is-num st-muted">' + n + '</td><td><span class="st-id">' + ST.esc(p.code) + '</span></td>' +
+      '<td><span class="st-table__name">' + (p.kind === 'tray' ? '<svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg> ' : '') + ST.esc(p.name) + (p.kind === 'tray' ? ' <span class="st-kind">Tray</span>' : '') + '</span><span class="st-table__sub">' + ST.esc(p.detail) + (p.fits === false ? ' · <span class="st-warn-text">too big for the ' + data.bed.width + ' × ' + data.bed.depth + ' mm bed</span>' : '') + (maxH && p.h > maxH ? ' · <span class="st-warn-text">taller than your printer can print (' + maxH + ' mm)</span>' : '') + '</span></td>' +
+      '<td class="is-num">' + p.qty + '</td><td>' + (p.w == null ? '<span class="st-muted">—</span>' : ST.pair(p.w, p.d)) + '</td><td>' + height + '</td>' +
+      '<td>' + filamentSelect(p) + '</td>' +
+      '<td><span class="st-status st-status--' + s[0] + '">' + label + '</span>' + (p.opened ? '<span class="st-table__sub">Opened in ' + ST.esc(ST.slicer.name) + ' ' + when(p.opened) + '</span>' : '') + '</td>' +
+      '<td>' + printedCell(p) + '</td>' +
+      '<td style="white-space:nowrap;text-align:right">' +
+        '<button class="st-btn st-btn--sm st-btn--ghost" type="button" data-export aria-label="Export ' + ST.esc(p.name) + ' STL" title="Export STL"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-export"/></svg></button>' +
+        '<button class="st-btn st-btn--sm st-btn--ghost" type="button" data-open aria-label="Open ' + ST.esc(p.name) + ' in ' + ST.esc(ST.slicer.name) + '" title="' + openTip(p.status !== 'done') + '"' + (slicer.found ? '' : ' disabled') + '><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-slicer"/></svg></button>' +
+      '</td></tr>';
+  }
+  function render() {
+    if (!data) return;
+    var plates = data.parts.filter(function (p) { return p.kind === 'baseplate'; }), bins = data.parts.filter(function (p) { return p.kind !== 'baseplate'; });
+    var html = '', n = 0, num = function (p) { return row(p, ++n); }, s = function (k, w) { return k + ' ' + w + (k === 1 ? '' : 's'); };
+    if (plates.length) html += '<tr class="is-group"><td colspan="10">Baseplate · ' + s(plates.length, 'piece') + ' · each fits the ' + (project.layout ? project.layout.bed.width + ' × ' + project.layout.bed.depth + ' mm' : '') + ' bed' + (project.layout && ST.pitchText(project.layout.pitch) ? ' · ' + ST.pitchText(project.layout.pitch) : '') + '</td></tr>' + plates.map(num).join('');
+    if (bins.length) {
+      // designs = bins in the drawer; pieces = what gets printed for them (split bins and tray halves are several)
+      var keys = bins.filter(function (p) { return p.part === 'keys'; }), parts = bins.filter(function (p) { return p.part !== 'keys'; });
+      var designs = parts.reduce(function (a, p) { if (a.indexOf(p.id) < 0) a.push(p.id); return a; }, []).length;
+      html += '<tr class="is-group"><td colspan="10">Bins · ' + s(designs, 'design') + (parts.length > designs ? ' · ' + s(parts.length, 'piece') : '') + (keys.length ? ' · ' + s(keys.length, 'set') + ' of bow-tie keys' : '') + '</td></tr>' + bins.map(num).join('');
+    }
+    if (data.parts.length) {
+      var prints = data.parts.reduce(function (a, p) { return a + p.qty; }, 0);
+      html += '<tr class="is-total"><td colspan="10">Total · ' + s(data.parts.length, 'part') + (prints !== data.parts.length ? ' · ' + s(prints, 'print') + ' counting how many of each' : '') +
+        (data.plates.length ? ' · ' + s(data.plates.length, 'plate') : '') + ' · ' + data.printed + ' of ' + prints + ' printed' + filamentTotal() +
+        (data.parts.some(function (p) { return p.printed; }) ? ' <button type="button" class="st-pathlink st-total__action" id="clear-printed">Clear printed marks</button>' : '') + '</td></tr>';
+    }
+    if (data.parts.length) html = html.replace(/<\/td><\/tr>$/, hardwareNote() + '</td></tr>');  // under the Total row
+    tbody.innerHTML = html;
+    renderPlates();
+    applyView();
+    document.getElementById('parts-empty').hidden = !!data.parts.length;
+    document.querySelector('#parts-panel .st-table').hidden = !data.parts.length;
+    var stl = data.parts.length;
+    document.getElementById('meta').innerHTML = ST.esc(project.name) + ' · ' + data.designs + ' parts · ' + data.prints + ' prints' + (data.plates.length ? ' · ' + data.plates.length + ' plate' + (data.plates.length === 1 ? '' : 's') : '') + ' · files go to ' + '<button type="button" class="st-pathlink" id="open-folder" title="Show this folder in Explorer">' + ST.esc(data.folder) + '</button>';
+    document.getElementById('export-all-meta').textContent = stl + ' STL';
+    document.getElementById('export-all').disabled = !stl || Object.keys(busy).length > 0;
+    var oa = document.getElementById('open-all');
+    oa.disabled = !stl || !slicer.found; oa.title = openTip(data.parts.some(function (p) { return p.status !== 'done'; }));
+  }
+  /* also needed: magnets (and screws) for every copy, from the server's count */
+  function hardwareNote() {
+    var hw = data.hardware, m = hw ? hw.magnets.plate + hw.magnets.bins : 0, bits = [];
+    if (m) bits.push('<b>' + m + ' magnets</b>, 6 × 2 mm (baseplate ' + hw.magnets.plate + ', bins ' + hw.magnets.bins + ')');
+    if (hw && hw.screws) bits.push('<b>' + hw.screws + ' M3 screws</b> for bins with screw holes');
+    if (!bits.length) return '';
+    var lone = m && (!hw.magnets.plate || !hw.magnets.bins) ? ' Magnets on one side only hold if the other side has magnets or steel.' : '';
+    return '<span class="st-total__sub">Also needed: ' + bits.join(' · ') + '.' + lone + '</span>';
+  }
+  /* filament: ≈ grams per filament, from the exported parts (parts not exported yet aren't counted) */
+  function filamentTotal() {
+    var per = {}, order = [], missing = 0;
+    data.parts.forEach(function (p) {
+      var g = partGrams(p), f = fil(p.filament);
+      if (g == null) { missing++; return; }
+      if (!per[f.id]) { per[f.id] = 0; order.push(f); }
+      per[f.id] += g * p.qty;
+    });
+    if (!order.length) return '';
+    return '<span class="st-total__sub">Filament ' + order.map(function (f) { return '<span class="st-material__swatch" style="background:' + f.color + '"></span> ' + ST.esc(f.name) + ' ' + ST.gramsText(per[f.id]); }).join(' \u00b7 ') +
+      (missing ? ' \u00b7 ' + missing + ' part' + (missing === 1 ? '' : 's') + ' not exported yet, not counted' : '') + '</span>';
+  }
+
+  /* ---- plates: what goes on the bed together, one filament per plate ---- */
+  function byKey(k) { return data.parts.filter(function (p) { return p.key === k; })[0]; }
+  /* Parts | Plates: two ways to look at the same prints, one at a time (remembered in localStorage st.printView) */
+  var view = 'parts';
+  try { view = localStorage.getItem('st.printView') === 'plates' ? 'plates' : 'parts'; } catch (e) {}
+  function applyView() {
+    var has = !!(data && data.plates && data.plates.length), v = has ? view : 'parts', seg = document.getElementById('view');
+    seg.hidden = !has;
+    seg.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.view === v); });
+    if (data) { document.getElementById('view-parts').textContent = data.parts.length; document.getElementById('view-plates').textContent = has ? data.plates.length : ''; }
+    document.getElementById('parts-panel').hidden = v !== 'parts';
+    document.getElementById('plates-panel').hidden = v !== 'plates';
+  }
+  document.getElementById('view').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]'); if (!b) return;
+    view = b.dataset.view;
+    try { localStorage.setItem('st.printView', view); } catch (err) {}
+    applyView();
+  });
+  function renderPlates() {
+    var body = document.getElementById('plates');
+    if (!data.plates || !data.plates.length) { body.innerHTML = ''; return; }
+    document.getElementById('plates-aside').textContent = 'Parts packed onto your ' + data.bed.width + ' \u00d7 ' + data.bed.depth + ' mm bed, one filament per plate. Print one plate at a time; tick it when it\u2019s done.';
+    var donePlates = data.plates.filter(function (pl) { return pl.printed; }).length;
+    body.innerHTML = data.plates.map(function (pl) {
+      var f = fil(pl.filament), grams = 0, known = true;
+      var list = pl.parts.map(function (r) {
+        var p = byKey(r.key), g = partGrams(p);
+        if (g == null) known = false; else grams += g * r.copies;
+        return '<span class="st-plate__part"><span class="st-id">' + ST.esc(p.code) + '</span> ' + ST.esc(p.kind === 'baseplate' ? 'Baseplate' : p.name) + (r.copies > 1 ? ' \u00d7' + r.copies : '') + '</span>';
+      }).join(' ');
+      var ready = pl.parts.every(function (r) { return byKey(r.key).status === 'done'; });
+      return '<tr data-plate="' + pl.n + '"' + (pl.printed ? ' class="is-printed"' : '') + '><td class="is-num st-muted">' + pl.n + '</td>' +
+        '<td><span class="st-plate">' + list + '</span></td>' +
+        '<td><span class="st-material"><span class="st-material__swatch" style="background:' + f.color + '"></span> ' + ST.esc(f.name) + '</span>' + (known ? '<span class="st-table__sub">' + ST.gramsText(grams) + '</span>' : '<span class="st-table__sub">export to estimate</span>') + '</td>' +
+        '<td><button class="st-printed' + (pl.printed ? ' is-on' : '') + '" type="button" data-plate-printed aria-pressed="' + pl.printed + '" aria-label="Plate ' + pl.n + ' printed" title="' + (pl.printed ? 'Printed. Click to untick its parts' : 'Mark every part on this plate printed') + '"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-check"/></svg></button></td>' +
+        '<td style="text-align:right"><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-plate-open aria-label="Open plate ' + pl.n + ' in ' + ST.esc(ST.slicer.name) + '" title="' + openTip(!ready) + '"' + (slicer.found ? '' : ' disabled') + '><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-slicer"/></svg></button></td></tr>';
+    }).join('') +
+      '<tr class="is-total"><td colspan="5">Total · ' + data.plates.length + ' plate' + (data.plates.length === 1 ? '' : 's') + ' · ' + donePlates + ' of ' + data.plates.length + ' printed' + filamentTotal() + hardwareNote() + '</td></tr>';
+  }
+  document.getElementById('plates').addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-plate]'); if (!tr) return;
+    var n = +tr.dataset.plate, pl = data.plates.filter(function (x) { return x.n === n; })[0];
+    if (e.target.closest('[data-plate-printed]')) {
+      setPrinted({ plate: n, on: !pl.printed });
+    } else if (e.target.closest('[data-plate-open]')) {
+      var ready = pl.parts.every(function (r) { return byKey(r.key).status === 'done'; });
+      (ready ? Promise.resolve(true) : exportAll()).then(function (ok) {
+        if (!ok) return;
+        return ST.api('POST', 'projects/' + pid + '/open', { plate: n }).then(function (r) { ST.openedToast(r); return load(); });
+      }).catch(function (err) { ST.toast(ST.esc(err.message), 'error'); });
+    }
+  });
+
+  function load() {
+    return Promise.all([ST.api('GET', 'projects/' + pid + '/parts'), ST.api('GET', 'settings'), ST.api('GET', 'projects/' + pid)])
+      .then(function (r) { data = r[0]; filaments = r[1].filaments; slicer = r[1].slicer || { found: false }; maxH = r[1].printer.max_h; ST.setSlicer(r[1].slicer); project = r[2]; render(); }, function (e) { ST.toast(ST.esc(e.message), 'error'); });
+  }
+  document.addEventListener('st:prefs', render);
+
+  function openTip(needsExport) {
+    if (!slicer.found) return ST.slicer.name + ' wasn\u2019t found. Set its location in Settings.';
+    return needsExport ? 'Exports what\u2019s missing, then opens it in ' + ST.slicer.name : 'Open in ' + ST.slicer.name;
+  }
+  function showFolderToast(msg) {
+    var t = ST.toast(msg, 'success', 'Show folder'), a = t && t.querySelector('.st-toast__action');
+    if (a) a.addEventListener('click', function () { ST.reveal(pid, 'exports'); });
+  }
+
+  document.getElementById('meta').addEventListener('click', function (e) {
+    if (e.target.closest('#open-folder')) ST.reveal(pid, 'exports');  // the exports folder, or the drawer's folder if nothing is exported yet
+  });
+
+  /* ---- printed marks: the tick changes at once (same rules as the server's), then saves on the drawer.
+     One request at a time so quick clicks land in order; the server's answer is shown once none are left
+     (an earlier answer would briefly undo a later click). If saving fails, the page reloads what was saved. ---- */
+  var tracking = Promise.resolve(), pending = 0;
+  function setCount(p, n) { p.printed = Math.max(0, Math.min(n, p.qty)); p.printed_old = false; }  // a changed tick counts for this version
+  function recount() {
+    var done = {};
+    data.parts.forEach(function (p) { done[p.key] = p.printed_old ? 0 : p.printed; });
+    data.printed = data.parts.reduce(function (a, p) { return a + done[p.key]; }, 0);
+    (data.plates || []).forEach(function (pl) { pl.printed = pl.parts.every(function (r) { return done[r.key] >= r.before + r.copies; }); });
+  }
+  function applyLocal(body) {
+    if (body.reset) data.parts.forEach(function (p) { setCount(p, 0); });
+    else if (body.key) setCount(byKey(body.key), body.n);
+    else if (body.plate) {
+      var pl = data.plates.filter(function (x) { return x.n === body.plate; })[0];
+      pl.parts.forEach(function (r) {
+        var p = byKey(r.key), have = p.printed_old ? 0 : p.printed;
+        setCount(p, body.on ? Math.max(have, r.before + r.copies) : Math.min(have, r.before));
+      });
+    }
+    recount(); render();
+  }
+  function setPrinted(body) {
+    applyLocal(body);
+    pending++;
+    tracking = tracking.then(function () { return ST.api('POST', 'projects/' + pid + '/printed', body); })
+      .then(function (r) { if (--pending === 0) { data = r; render(); } },
+        function (err) { pending--; ST.toast('Couldn’t save the printed mark: ' + ST.esc(err.message), 'error'); if (!pending) return load(); });
+  }
+  tbody.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-printed]'); if (!b) return;
+    var p = data.parts.filter(function (x) { return x.file === b.closest('tr').dataset.file; })[0];
+    setPrinted({ key: p.key, n: +b.dataset.printed });
+  });
+  tbody.addEventListener('click', function (e) {
+    if (!e.target.closest('#clear-printed')) return;
+    ST.dialog({ title: 'Clear printed marks', text: 'Untick every part in this drawer, for example to print the whole set again?', confirm: 'Clear' })
+      .then(function (ok) { if (ok) setPrinted({ reset: true }); });
+  });
+
+  /* ---- filament per part (saved on the drawer) ---- */
+  tbody.addEventListener('change', function (e) {
+    if (!e.target.matches('[data-filament]')) return;
+    var p = data.parts.filter(function (x) { return x.file === e.target.closest('tr').dataset.file; })[0], id = e.target.value;
+    var body;
+    if (p.kind === 'baseplate') body = { baseplate: { filament: id } };
+    else body = { bins: project.bins.map(function (b) { return b.id === p.id ? Object.assign({}, b, { filament: id }) : b; }) };
+    ST.api('PATCH', 'projects/' + pid, body).then(function (doc) {
+      project = doc;
+      data.parts.forEach(function (x) { if (x.kind === 'baseplate' ? p.kind === 'baseplate' : x.id === p.id) x.filament = id; });
+      render();
+    }, function (err) { ST.toast(ST.esc(err.message), 'error'); });
+  });
+
+  /* ---- export ---- */
+  tbody.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-file]'); if (!tr) return;
+    var p = data.parts.filter(function (x) { return x.file === tr.dataset.file; })[0];
+    if (e.target.closest('[data-export]')) {
+      exportPart(p).then(function (ok) { if (ok) showFolderToast(p.kind === 'baseplate' ? 'Baseplate pieces saved.' : 'Saved ' + ST.esc(p.file) + '.'); });
+    } else if (e.target.closest('[data-open]')) {
+      (p.status === 'done' ? Promise.resolve(true) : exportPart(p)).then(function (ok) {
+        if (!ok) return;
+        return ST.api('POST', 'projects/' + pid + '/open', { files: [p.file] }).then(function (r) {
+          ST.openedToast(r);
+          return load();
+        });
+      }).catch(function (err) { ST.toast(ST.esc(err.message), 'error'); });
+    }
+  });
+  /* export one part (a baseplate piece exports the whole baseplate); resolves true when it worked */
+  function exportPart(p) {
+    var files = p.kind === 'baseplate' ? data.parts.filter(function (x) { return x.kind === 'baseplate'; }) : data.parts.filter(function (x) { return x.id === p.id && x.kind !== 'baseplate'; });
+    files.forEach(function (x) { busy[x.file] = 'busy'; }); render();
+    var call = p.kind === 'baseplate' ? ST.api('POST', 'projects/' + pid + '/export/baseplate') : ST.api('POST', 'projects/' + pid + '/bins/' + p.id + '/export');
+    return call.then(function () { return true; },
+      function (err) { files.forEach(function (x) { busy[x.file] = 'error'; }); ST.toast('Export failed: ' + ST.esc(err.message), 'error'); return false; })
+      .then(function (ok) { files.forEach(function (x) { if (busy[x.file] === 'busy') delete busy[x.file]; }); return load().then(function () { return ok; }); });
+  }
+  function exportAll() {
+    data.parts.forEach(function (x) { busy[x.file] = 'busy'; }); render();
+    var label = document.getElementById('export-all-label'); label.textContent = 'Exporting\u2026';
+    return ST.api('POST', 'projects/' + pid + '/export/all').then(function (r) {
+      busy = {};
+      r.errors.forEach(function (m) { ST.toast(ST.esc(m), 'error'); });
+      return r;
+    }, function (err) { busy = {}; ST.toast('Export failed: ' + ST.esc(err.message), 'error'); return null; })
+      .then(function (r) { label.textContent = 'Export all'; return load().then(function () { return r; }); });
+  }
+  document.getElementById('export-all').addEventListener('click', function () {
+    exportAll().then(function (r) { if (r) showFolderToast(r.files.length + ' STL file' + (r.files.length === 1 ? '' : 's') + ' saved.'); });
+  });
+  document.getElementById('open-all').addEventListener('click', function () {
+    var missing = data.parts.some(function (p) { return p.status !== 'done'; });
+    (missing ? exportAll() : Promise.resolve(true)).then(function (ok) {
+      if (!ok) return;
+      return ST.api('POST', 'projects/' + pid + '/open');
+    }).then(function (r) {
+      if (!r) return;
+      ST.openedToast(r, r.skipped.length ? ' Not exported: ' + r.skipped.length + '.' : '');
+      return load();
+    }).catch(function (err) { ST.toast(ST.esc(err.message), 'error'); });
+  });
+
+  load();
+});
+</script>
+</body>
+</html>

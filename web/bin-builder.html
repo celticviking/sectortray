@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bin builder · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script src="js/st.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app st-app--fixed">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  <span class="st-project-tag" hidden></span>
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html" aria-current="page">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+<div class="st-layout st-layout--builder">
+  <div class="st-col" style="overflow:auto">
+    <section class="st-panel" id="tray-note" hidden>
+      <div class="st-panel__head"><h2 class="st-tag">Silverware tray</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body"><p class="st-row__sub" style="font-size:var(--st-text-sm);color:var(--st-color-text);line-height:1.45" id="tray-note-text"></p>
+        <a class="st-btn st-btn--primary" id="tray-edit" href="silverware-wizard.html"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg> Edit in the wizard</a></div>
+    </section>
+    <fieldset class="st-fieldset" id="editor" disabled>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">1.1</span><h2 class="st-tag">Size</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Width </span><span class="st-row__sub"><span data-out="wmm"></span></span></div><div class="st-stepper" data-stepper="w" data-min="1" data-max="20"><button class="st-stepper__btn" type="button" aria-label="Narrower" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="Wider" data-step="1">+</button></div></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Depth </span><span class="st-row__sub"><span data-out="dmm"></span></span></div><div class="st-stepper" data-stepper="d" data-min="1" data-max="20"><button class="st-stepper__btn" type="button" aria-label="Shallower" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="Deeper" data-step="1">+</button></div></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Height <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>u</b> is Gridfinity’s height unit: <b>1u = 7 mm</b>. A 3u bin is 21 mm tall, plus the stacking lip. Label tabs need at least 3u.</span></span></span><span class="st-row__sub"><span data-out="hmm"></span> · <span data-out="hfit"></span></span></div><div class="st-stepper" data-stepper="h" data-min="1" data-max="20"><button class="st-stepper__btn" type="button" aria-label="Lower" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="Taller" data-step="1">+</button></div></div>
+        <div class="st-split" id="split-box" hidden>
+          <div class="st-row"><div class="st-row__label"><span class="st-row__title">Print in pieces <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">The bin is cut on the grid lines into pieces that fit your printer bed. Each piece still sits in whole baseplate squares, so the grid keeps them lined up.</span></span></span><span class="st-row__sub" id="split-sub"></span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Print in pieces" id="split-on"></button></div>
+          <div class="st-split__opts" id="split-opts" hidden>
+            <div class="st-field"><span class="st-row__title">Joint <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>Snap clips</b>: a thin plate on the inside of each wall reaches past the seam and grips the other piece. <b>Bow-tie keys</b>: small keys you print separately and press into pockets in the floor across the seam (a drop of glue makes it permanent). <b>None</b>: the pieces just sit side by side in the grid.</span></span></span>
+              <div class="st-seg st-seg--block st-seg--text" role="group" aria-label="Joint" id="split-joint"><button class="st-seg__btn" type="button" data-joint="clips">Snap clips</button><button class="st-seg__btn" type="button" data-joint="keys">Bow-tie keys</button><button class="st-seg__btn" type="button" data-joint="none">None</button></div>
+              <span class="st-row__sub" id="split-joint-sub"></span></div>
+            <div class="st-split__opts" id="split-runs"></div>
+            <p class="st-split__notes" id="split-notes" hidden></p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">1.2</span><h2 class="st-tag">Compartments</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Across <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>Compartments</b> split the bin with thin walls. “Across” divides the width; “along” divides the depth.</span></span></span><span class="st-row__sub"><span data-out="cw"></span> each, inside</span></div><div class="st-stepper" data-stepper="divx" data-min="1" data-max="12"><button class="st-stepper__btn" type="button" aria-label="Fewer across" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="More across" data-step="1">+</button></div></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Along </span><span class="st-row__sub"><span data-out="cd"></span> each, inside</span></div><div class="st-stepper" data-stepper="divy" data-min="1" data-max="12"><button class="st-stepper__btn" type="button" aria-label="Fewer along" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="More along" data-step="1">+</button></div></div>
+        <div id="comp-preview" aria-hidden="true" style="display:grid;gap:3px;height:64px;padding:4px;border:1.5px solid var(--st-color-text-3);border-radius:var(--st-radius-chip)"></div>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">1.3</span><h2 class="st-tag">Features</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Label tab <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">A <b>label tab</b> is a little shelf along the back wall where you can stick or write a label. It’s readable from above. Bins under 3u skip it.</span></span></span><span class="st-row__sub">Shelf along the back wall</span></div><button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Label tab" data-flag="label_tab"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Finger scoop <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">A <b>finger scoop</b> is a curved ramp inside the front wall. It lets you slide small things (screws, teaspoons) out with one finger instead of pinching.</span></span></span><span class="st-row__sub">Curved front for scooping</span></div><button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Finger scoop" data-flag="scoop"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Stacking lip <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">A <b>stacking lip</b> is a small rim around the top edge. Another bin can sit on top of it. Turn it off to gain about 3.5 mm of height in a shallow drawer.</span></span></span><span class="st-row__sub">Adds about 3.5 mm on top</span></div><button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Stacking lip" data-flag="lip"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Magnet holes <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Pockets in the bin’s feet for <b>6 × 2 mm</b> disc magnets. They match the baseplate’s magnet holes, so the bin stays put.</span></span></span><span class="st-row__sub" id="mag-sub">Matches the baseplate</span></div><button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Magnet holes" data-flag="magnets"></button></div>
+      </div>
+      <details class="st-disclosure">
+        <summary>Advanced <span class="st-disclosure__count">3 options</span></summary>
+        <div class="st-disclosure__body">
+          <div class="st-field"><span class="st-row__title">Label tab style <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>Auto</b> sizes a tab per compartment (up to one square wide). <b>Full</b> runs the whole width. Left, Center and Right place a short tab.</span></span></span><div class="st-seg st-seg--block st-seg--text" role="group" aria-label="Label tab style" id="tab-style"><button class="st-seg__btn" type="button" data-val="auto">Auto</button><button class="st-seg__btn" type="button" data-val="full">Full</button><button class="st-seg__btn" type="button" data-val="left">Left</button><button class="st-seg__btn" type="button" data-val="center">Center</button><button class="st-seg__btn" type="button" data-val="right">Right</button></div></div>
+          <div class="st-row"><div class="st-row__label"><span class="st-row__title">Screw holes <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Holes in the feet for M3 screws. Use them if the baseplate is screwed down and bins should be too.</span></span></span><span class="st-row__sub">For screwing bins down</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Screw holes" data-flag="screws"></button></div>
+          <div class="st-row"><div class="st-row__label"><span class="st-row__title">Half-grid feet <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Splits each 42 mm foot into four 21 mm feet, so the bin also fits half-grid plates. Magnets go in the corners only.</span></span></span><span class="st-row__sub">Fits 21 mm half-grid plates</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Half-grid feet" data-flag="half_grid"></button></div>
+        </div>
+      </details>
+    </section>
+    </fieldset>
+  </div>
+
+  <section class="st-panel st-panel--mat" aria-label="3D preview">
+    <div class="st-panel__head"><span class="st-panel__num">Fig. 2</span><h2 class="st-tag">3D preview</h2><span class="st-panel__aside"><span id="bin-title"></span></span></div>
+    <div class="st-viewport is-stale" id="viewport">
+      <div class="st-viewport__placeholder"><div class="st-viewport__note" id="vp-note">Loading the 3D preview…</div></div>
+      <div class="st-viewport__bar st-viewport__bar--top">
+        <div class="st-seg st-seg--text" role="group" aria-label="View" id="views">
+          <button class="st-seg__btn" type="button" aria-pressed="true" data-view="iso">Iso</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view="top">Top</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view="front">Front</button>
+        </div>
+        <span class="st-viewport__spacer"></span>
+        <span class="st-label">Filament</span>
+        <div class="st-swatch-pick" role="group" aria-label="Filament for this bin" id="swatches"></div>
+        <a class="st-btn st-btn--sm st-btn--ghost" href="settings.html#filaments" title="Edit your filaments">Edit</a>
+      </div>
+      <div class="st-viewport__bar st-viewport__bar--bottom">
+        <div class="st-render" id="render" data-state="idle" role="status" aria-live="polite">
+          <span class="st-render__dot"></span><span class="st-render__label">Not rendered</span><span class="st-render__time"></span>
+          <button class="st-btn st-btn--sm st-btn--ghost" type="button" id="err-log" hidden>Show log</button>
+          <button class="st-btn st-btn--sm st-btn--ghost st-render__action" type="button" id="render-btn"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-render"/></svg> <span>Render</span></button>
+          <span class="st-render__bar"></span>
+        </div>
+        <span class="st-viewport__spacer"></span>
+        <button class="st-btn" type="button" id="export-stl" disabled><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-export"/></svg> Export STL</button>
+        <button class="st-btn st-btn--primary" type="button" id="open-slicer" disabled title="Exports this bin and opens it in your slicer (one copy per quantity)"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-slicer"/></svg> Open in <span data-slicer-name>PrusaSlicer</span></button>
+      </div>
+    </div>
+  </section>
+
+  <div class="st-col" style="overflow:auto">
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">2.1</span><h2 class="st-tag">Bins in this drawer</h2><span class="st-panel__aside st-panel__tools"><span class="st-saved" id="saved" aria-live="polite"></span><button class="st-icon-btn" type="button" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-undo"/></svg></button><button class="st-icon-btn" type="button" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-redo"/></svg></button></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <ul class="st-list" id="bin-list"></ul>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Label tabs in this drawer <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Turns the label tab on or off for <b>every bin in this drawer</b>, and for bins you add here later. Handy for a screw drawer where every bin gets a label. Each bin can still change its own under Features.</span></span></span><span class="st-row__sub" id="drawer-tabs-sub"></span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Label tabs in this drawer" id="drawer-tabs"></button></div><div class="st-menu" id="newbin"><button class="st-btn st-btn--ghost" type="button" aria-haspopup="menu" aria-expanded="false" id="newbin-btn" style="justify-content:flex-start"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> New bin <svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-chevron-down"/></svg></button>
+        <ul class="st-menu__list" role="menu" hidden id="newbin-menu">
+          <li role="none"><button class="st-menu__item" role="menuitem" type="button" id="new-bin"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-bin"/></svg><span class="st-menu__text"><span class="st-menu__title">Blank bin</span><span class="st-menu__sub">Pick a size, then add dividers, a scoop or a label tab</span></span></button></li>
+          <li role="none"><a class="st-menu__item" role="menuitem" href="silverware-wizard.html" data-plink><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg><span class="st-menu__text"><span class="st-menu__title">Silverware tray…</span><span class="st-menu__sub">Measure your forks, knives and spoons for fitted slots</span></span></a></li>
+          <li role="none"><a class="st-menu__item" role="menuitem" href="layout-editor.html" data-plink><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-fill-gap"/></svg><span class="st-menu__text"><span class="st-menu__title">From a gap in Layout…</span><span class="st-menu__sub">Select empty squares and fill them exactly</span></span></a></li>
+        </ul></div></div>
+    </section>
+    <section class="st-panel" id="this-bin" hidden>
+      <div class="st-panel__head"><span class="st-panel__num">2.2</span><h2 class="st-tag" id="this-bin-title">This bin</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <p class="st-multi-note" id="multi-note" hidden></p>
+      <div class="st-bin-edit">
+        <label class="st-label" for="bin-name">Name</label>
+        <div class="st-bin-edit__row"><input class="st-input" id="bin-name" maxlength="40" autocomplete="off" spellcheck="false"></div>
+        <div class="st-bin-edit__row">
+          <span class="st-label" style="margin-right:auto">How many</span>
+          <div class="st-stepper" data-stepper="qty" data-min="1" data-max="99"><button class="st-stepper__btn" type="button" aria-label="Fewer" data-step="-1">−</button><output class="st-stepper__value" aria-live="polite"></output><button class="st-stepper__btn" type="button" aria-label="More" data-step="1">+</button></div>
+        </div>
+        <div class="st-bin-edit__row">
+          <button class="st-btn st-btn--sm" type="button" id="dup-bin"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg> <span id="dup-label">Duplicate</span></button>
+          <button class="st-btn st-btn--sm st-btn--danger" type="button" id="del-bin"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-trash"/></svg> <span id="del-label">Delete</span></button>
+        </div>
+      </div>
+      <div class="st-readout">
+        <div class="st-readout__hero"><span class="st-readout__label">Footprint</span><span class="st-readout__value" data-out="foot" style="font-size:var(--st-text-2xl)"></span><span class="st-readout__sub" data-out="footSec"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Height</span><span class="st-readout__value" data-out="hu"></span><span class="st-readout__sub" data-out="hmm2"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Compartments</span><span class="st-readout__value" data-out="cn"></span><span class="st-readout__sub" data-out="csz"></span></div>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
+</div>
+<script>
+document.addEventListener('st:shell', function (ev) {
+  var project = ev.detail.project;
+  if (!project) { location.replace('projects.html?first=1'); return; }
+  var pid = encodeURIComponent(project.id), L = project.layout && !project.layout.error ? project.layout : null;
+  var bins = project.bins.slice(), cur = null, vp = null, vpReady = null;
+  // several bins: picked = every selected bin (Ctrl+click, Shift+click, Ctrl+A in the list); cur = the one last clicked,
+  // shown in the editor. Changes in the editor go to every picked bin (trays keep their own size).
+  var picked = [], anchor = null;
+  function targets() { return picked.length > 1 && picked.indexOf(cur) >= 0 ? picked : cur ? [cur] : []; }
+  var out = function (k, html) { document.querySelectorAll('[data-out="' + k + '"]').forEach(function (el) { el.innerHTML = html; }); };
+  var WALL = 0.95, DIV = 1.2;
+  var bed = L && L.bed;  // printer bed from Settings; also fetched below for drawers not measured yet
+  function fit(b) { return bed && b.kind !== 'tray' ? ST.binFit(b.w, b.d, bed) : null; }
+  function plan(b) { return ST.splitPlan(b, bed); }
+  function trayHalves(b) { return !!(b.tray && b.tray.halves) && !!bed && !ST.binFit(b.w, b.d, bed).ok; }  // too big for one piece
+  function pieces(b) { var p = plan(b); return p && p.on ? p : null; }  // split into pieces (null: one print)
+  var JOINT = { clips: 'snap clips', keys: 'bow-tie keys', none: 'no joint' };
+
+  /* ---------------- 3D viewport (ES module, loaded on demand) ---------------- */
+  vpReady = import('./js/viewport.js').then(function (m) {
+    vp = m.createViewport(document.getElementById('viewport'));
+    applyColor();
+    document.getElementById('vp-note').textContent = vp.unavailable ? 'The 3D preview needs WebGL, which this browser has turned off. Exports still work.' : 'Pick or add a bin to see it here.';
+    return vp;
+  }, function () { document.getElementById('vp-note').textContent = 'The 3D preview couldn’t start. Exports still work.'; });
+
+  /* ---------------- filament: each bin remembers its own (Settings → Filaments) ---------------- */
+  var filaments = [];
+  var tabDefault = false, newBins = { lip: false, scoop: true, auto_split: true };  // Settings → New bins; the drawer's label-tab choice wins
+  function drawerTabs() { return project.label_tabs != null ? project.label_tabs : tabDefault; }
+  function renderDrawerTabs() {
+    var plain = bins.filter(function (b) { return b.kind !== 'tray'; }), on = plain.filter(function (b) { return b.label_tab; }).length;
+    document.getElementById('drawer-tabs').setAttribute('aria-checked', String(drawerTabs()));
+    document.getElementById('drawer-tabs-sub').textContent = (drawerTabs() ? 'New bins get one' : 'New bins don’t get one') +
+      (plain.length ? ' · ' + (on === plain.length ? 'all ' + on : on + ' of ' + plain.length) + ' bin' + (plain.length > 1 ? 's' : '') + ' have one now' : '');
+  }
+  document.getElementById('drawer-tabs').addEventListener('click', function () {
+    record();
+    var v = !drawerTabs();
+    project.label_tabs = v;
+    bins.forEach(function (b) { if (b.kind !== 'tray') b.label_tab = v; });
+    ST.api('PATCH', 'projects/' + pid, { label_tabs: v }).catch(function (e) { ST.toast(ST.esc(e.message), 'error'); });
+    changed(true);
+    ST.toast('Label tabs ' + (v ? 'on' : 'off') + ' for every bin in this drawer.');
+  });
+  var maxH = null;  // printer's max print height (Settings → Printer)
+  ST.api('GET', 'settings').then(function (s) {
+    maxH = s.printer.max_h; summary();
+    filaments = s.filaments; tabDefault = !!(s.new_bins && s.new_bins.label_tab); newBins = s.new_bins || newBins; renderDrawerTabs();
+    if (!bed) { bed = { width: s.printer.bed_w, depth: s.printer.bed_d }; renderList(); summary(); }
+    renderSwatches(); applyColor();
+  });
+  function filOf(b) { return filaments.filter(function (f) { return f.id === (b && b.filament); })[0] || filaments[0]; }
+  function renderSwatches() {
+    var f = filOf(cur);
+    document.getElementById('swatches').innerHTML = filaments.map(function (x) {
+      return '<button type="button" data-fid="' + x.id + '" aria-pressed="' + String(!!f && x.id === f.id) + '" title="' + ST.esc(x.name) + ' · ' + x.material + '"' + (cur ? '' : ' disabled') + '>' +
+        '<span class="st-swatch st-swatch--sm" style="display:block;width:22px;height:22px;background:' + x.color + '"></span></button>';
+    }).join('');
+  }
+  function applyColor() { var f = filOf(cur); if (vp && f) vp.setColor(f.color, f.material); }
+  document.getElementById('swatches').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-fid]'); if (!b || !cur) return;
+    record();
+    targets().forEach(function (t) { t.filament = b.dataset.fid; });
+    renderSwatches(); applyColor(); save();
+  });
+  document.getElementById('views').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]'); if (!b) return;
+    this.querySelectorAll('[data-view]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    if (vp) vp.setView(b.dataset.view);
+  });
+
+  /* ---------------- saving ---------------- */
+  var saveTimer = null, savedEl = document.getElementById('saved');
+  function save() {
+    savedEl.textContent = 'Saving'; savedEl.classList.remove('is-error');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 400);
+  }
+  var extra = null;  // after undo/redo: the drawer's placements and label-tab choice go back too
+  function flush() {
+    saveTimer = null;
+    var body = Object.assign({ bins: bins }, extra || {}); extra = null;
+    return ST.api('PATCH', 'projects/' + pid, body).then(function (doc) {
+      project.placements = doc.placements; project.label_tabs = doc.label_tabs;
+      // server may assign ids to new bins; keep our selection pointing at the same position
+      var idx = bins.indexOf(cur);
+      bins.forEach(function (b, i) { b.id = doc.bins[i].id; });
+      if (idx >= 0) setHash(bins[idx].id);
+      savedEl.textContent = 'Saved';
+    }, function (e) { savedEl.textContent = 'Not saved'; savedEl.classList.add('is-error'); ST.toast(ST.esc(e.message), 'error'); throw e; });
+  }
+  function flushNow() { if (!saveTimer) return Promise.resolve(); clearTimeout(saveTimer); return flush(); }
+  ST.onSaveNow(flushNow);
+  window.addEventListener('pagehide', function () {
+    if (!saveTimer) return;
+    fetch('/api/projects/' + pid, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ bins: bins }, extra || {})), keepalive: true });
+  });
+
+  /* ---------------- undo / redo (100 steps; bins, the drawer's label-tab choice and where copies sit in Layout) ---------------- */
+  var hist = [], fut = [];
+  function snapshot() { return JSON.stringify({ bins: bins, tabs: project.label_tabs, placements: project.placements || [] }); }
+  function record() { hist.push(snapshot()); if (hist.length > 100) hist.shift(); fut = []; undoButtons(); }
+  function undoButtons() { document.getElementById('undo').disabled = !hist.length; document.getElementById('redo').disabled = !fut.length; }
+  function restore(s) {
+    var o = JSON.parse(s), ci = bins.indexOf(cur), id = cur && cur.id, ids = picked.map(function (b) { return b.id; });
+    bins = o.bins; project.label_tabs = o.tabs; project.placements = o.placements;
+    extra = { label_tabs: o.tabs, placements: o.placements };
+    var c = (id && bins.filter(function (b) { return b.id === id; })[0]) || bins[Math.min(Math.max(ci, 0), bins.length - 1)];
+    picked = bins.filter(function (b) { return b.id && ids.indexOf(b.id) >= 0; });
+    if (picked.indexOf(c) < 0) picked = c ? [c] : [];
+    select(c, true); renderDrawerTabs(); save(); undoButtons();
+  }
+  function undo() { if (!hist.length) return; fut.push(snapshot()); restore(hist.pop()); }
+  function redo() { if (!fut.length) return; hist.push(snapshot()); restore(fut.pop()); }
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('redo').addEventListener('click', redo);
+  document.addEventListener('keydown', function (e) {
+    if (e.target.matches && e.target.matches('input, textarea, select')) return;  // typing keeps its own undo
+    var k = (e.key || '').toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    else if (mod && k === 'y') { e.preventDefault(); redo(); }
+    else if (mod && k === 'a' && document.getElementById('bin-list').contains(document.activeElement) && bins.length) { e.preventDefault(); picked = bins.slice(); anchor = bins[0]; select(cur || bins[0], true); }
+    else if (k === 'escape' && picked.length > 1) select(cur);
+  });
+
+  /* ---------------- list ---------------- */
+  function describe(b) {
+    if (b.kind === 'tray') {
+      var us = b.tray.utensils.filter(function (u) { return !u.out; });
+      return b.w + '×' + b.d + ' · ' + b.h + 'u · ' + us.length + ' slots · ' + b.tray.margin.toLowerCase() + (trayHalves(b) ? ' · two halves' : '');
+    }
+    var f = [];
+    if (b.divx * b.divy > 1) f.push(b.divx * b.divy + ' compartments');
+    if (b.label_tab && b.h >= 3) f.push('label tab');
+    if (b.scoop) f.push('scoop');
+    if (!b.lip) f.push('no lip');
+    if (b.magnets) f.push('magnets');
+    var ft = fit(b), pc = pieces(b);
+    return b.w + '×' + b.d + ' · ' + b.h + 'u' + (f.length ? ' · ' + f.join(', ') : '') +
+      (pc ? ' <span class="st-pip" title="Prints in ' + pc.count + ' pieces because it\u2019s bigger than the bed\">In pieces</span>' + (pc.fits ? '' : ' <span class="st-warn-text">a piece is too big</span>') : ft && !ft.ok ? ' · <span class="st-warn-text">too big to print</span>' : '');
+  }
+  function renderList() {
+    var ul = document.getElementById('bin-list');
+    ul.innerHTML = bins.length ? bins.map(function (b, i) {
+      var tray = b.kind === 'tray';
+      return '<li><button class="st-list__item' + (picked.length > 1 && picked.indexOf(b) >= 0 ? ' is-picked' : '') + '" type="button" data-i="' + i + '"' + (b === cur ? ' aria-current="true"' : '') + '>' + (tray ? '<svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-utensils"/></svg>' : '') + '<span class="st-list__main"><span class="st-list__title">' + ST.esc(b.name) + '</span><span class="st-list__sub">' + describe(b) + '</span></span><span class="st-list__end st-mono st-muted">' + (tray ? '<span class="st-kind">Tray</span> ' : '') + '×' + b.qty + '</span></button></li>';
+    }).join('') : '<li class="st-list__empty">No bins yet. Add one to start.</li>';
+  }
+  document.getElementById('bin-list').addEventListener('click', function (e) {
+    var el = e.target.closest('[data-i]'); if (!el) return;
+    var b = bins[+el.dataset.i];
+    if (e.ctrlKey || e.metaKey) {  // add or take away one
+      if (!picked.length && cur) picked = [cur];
+      var at = picked.indexOf(b);
+      if (at >= 0 && picked.length > 1) { picked.splice(at, 1); select(b === cur ? picked[picked.length - 1] : cur, true); return; }
+      if (at < 0) picked.push(b);
+      select(b, true); return;
+    }
+    if (e.shiftKey && anchor && bins.indexOf(anchor) >= 0) {  // the run from the last plain click
+      var a = bins.indexOf(anchor), z = bins.indexOf(b);
+      picked = bins.slice(Math.min(a, z), Math.max(a, z) + 1);
+      select(b, true); return;
+    }
+    select(b);
+  });
+  function showMulti() {
+    var t = targets(), many = t.length > 1, note = document.getElementById('multi-note');
+    note.hidden = !many;
+    document.getElementById('this-bin-title').textContent = many ? t.length + ' bins' : 'This bin';
+    document.getElementById('dup-label').textContent = many ? 'Duplicate ' + t.length : 'Duplicate';
+    document.getElementById('del-label').textContent = many ? 'Delete ' + t.length : 'Delete';
+    if (!many) return;
+    var trays = t.filter(function (b) { return b.kind === 'tray'; }).length;
+    note.innerHTML = '<b>' + t.length + ' bins selected.</b> Size, compartments, features, filament and how many go to all of them' +
+      (trays ? ' (the tray' + (trays > 1 ? 's keep their' : ' keeps its') + ' own size and features)' : '') + '. The editor shows <b>' + ST.esc(cur.name) + '</b>. Ctrl+click to add or take one away, Esc to go back to one.';
+  }
+
+  function setHash(id) { if (history.replaceState) history.replaceState(null, '', location.pathname + location.search + (id ? '#' + id : '')); }
+  function select(b, keep) {
+    if (!keep) { picked = b ? [b] : []; anchor = b || null; }
+    cur = b || null; info = null;
+    setHash(cur && cur.id);
+    var isTray = !!cur && cur.kind === 'tray';
+    document.getElementById('editor').disabled = !cur || isTray;
+    document.getElementById('editor').hidden = isTray;
+    document.getElementById('tray-note').hidden = !isTray;
+    if (isTray) {
+      var us = cur.tray.utensils.filter(function (u) { return !u.out; });
+      document.getElementById('tray-note-text').innerHTML = 'Its size comes from the utensils you measured: <b>' + us.map(function (u) { return ST.esc(u.name); }).join(', ') + '</b>, ' + cur.tray.margin.toLowerCase() + ' margin' + (trayHalves(cur) ? ', printed in two halves that clip together' : '') + '. Change it in the wizard.';
+      document.getElementById('tray-edit').href = 'silverware-wizard.html?p=' + pid + '&bin=' + cur.id + '#arrange';
+    }
+    document.getElementById('this-bin').hidden = !cur;
+    renderList(); syncControls(); summary(); renderSwatches(); applyColor(); renderDrawerTabs(); showMulti();
+    if (cur) scheduleRender(0); else { setState('idle', 'No bin selected', ''); }
+  }
+
+  function nextName() {
+    var n = bins.length + 1, names = bins.map(function (b) { return b.name; });
+    while (names.indexOf('Bin ' + n) >= 0) n++;
+    return 'Bin ' + n;
+  }
+  document.getElementById('new-bin').addEventListener('click', function () {
+    var b = { name: nextName(), w: 2, d: 2, h: Math.min(3, (L && L.binU) || 3), qty: 1, divx: 1, divy: 1, label_tab: drawerTabs(), tab_style: 'auto', scoop: !!newBins.scoop, lip: !!newBins.lip, magnets: !!(project.baseplate && project.baseplate.magnets && project.baseplate.style !== 'lite'), screws: false, half_grid: false, x: null, y: null, filament: null };
+    record(); bins.push(b); select(b); save();
+    var name = document.getElementById('bin-name'); name.focus(); name.select();
+  });
+  document.getElementById('dup-bin').addEventListener('click', function () {
+    if (!cur) return;
+    record();
+    var made = targets().slice().map(function (src) {
+      var b = JSON.parse(JSON.stringify(Object.assign({}, src, { id: null, name: (src.name + ' copy').slice(0, 40), x: null, y: null })));
+      bins.splice(bins.indexOf(src) + 1, 0, b); return b;
+    });
+    picked = made; anchor = made[0]; select(made[made.length - 1], made.length > 1); save();
+  });
+  document.getElementById('del-bin').addEventListener('click', function () {
+    if (!cur) return;
+    var gone = targets().slice(), many = gone.length > 1;
+    ST.dialog({ title: many ? 'Delete ' + gone.length + ' bins' : 'Delete bin', text: 'Delete <b>' + gone.map(function (b) { return ST.esc(b.name); }).join(', ') + '</b> from this drawer? STLs you already exported stay in the exports folder. Ctrl+Z brings ' + (many ? 'them' : 'it') + ' back.', confirm: 'Delete', danger: true })
+      .then(function (ok) {
+        if (!ok) return;
+        record();
+        var i = bins.indexOf(gone[0]);
+        bins = bins.filter(function (b) { return gone.indexOf(b) < 0; });
+        select(bins[Math.min(i, bins.length - 1)]); save();
+      });
+  });
+  var nameEl = document.getElementById('bin-name');
+  var nameStep = false;  // one undo step per visit to the name box
+  nameEl.addEventListener('focus', function () { nameStep = false; });
+  nameEl.addEventListener('input', function () {
+    if (!cur) return;
+    var v = nameEl.value.replace(/\s+/g, ' ').trim();
+    if (!v) return;
+    if (!nameStep) { record(); nameStep = true; }
+    cur.name = v; renderList(); summary(); save();
+  });
+
+  /* ---------------- controls ---------------- */
+  function syncControls() {
+    if (!cur) return;
+    if (document.activeElement !== nameEl) nameEl.value = cur.name;
+    document.querySelectorAll('[data-stepper]').forEach(function (s) {
+      var k = s.dataset.stepper, v = cur[k], max = +s.dataset.max;
+      if (k === 'w' && L) max = L.nx; if (k === 'd' && L) max = L.ny;
+      s.querySelector('output').textContent = v + (k === 'h' ? 'u' : k === 'w' || k === 'd' ? '×' : '');
+      s.querySelector('[data-step="-1"]').disabled = v <= +s.dataset.min;
+      s.querySelector('[data-step="1"]').disabled = v >= max;
+    });
+    document.querySelectorAll('[data-flag]').forEach(function (sw) { sw.setAttribute('aria-checked', String(!!cur[sw.dataset.flag])); });
+    document.querySelectorAll('#tab-style [data-val]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.val === cur.tab_style)); });
+    var bp = project.baseplate || {}, plateMag = bp.magnets && bp.style !== 'lite';
+    document.getElementById('mag-sub').textContent = cur.magnets === plateMag ? 'Matches the baseplate' : (plateMag ? 'Baseplate has magnet pockets' : 'Baseplate has no magnet pockets');
+  }
+  document.addEventListener('click', function (e) {
+    if (!cur) return;
+    var b = e.target.closest('[data-step]');
+    if (b) {
+      var s = b.closest('[data-stepper]'), k = s.dataset.stepper, max = +s.dataset.max;
+      if (k === 'w' && L) max = L.nx; if (k === 'd' && L) max = L.ny;
+      var v = Math.min(max, Math.max(+s.dataset.min, cur[k] + (+b.dataset.step)));
+      record();
+      targets().forEach(function (x) { if (k === 'qty' || x.kind !== 'tray') x[k] = v; });  // every picked bin gets the value shown
+      changed(k !== 'qty'); return;
+    }
+    var w = e.target.closest('[data-flag]');
+    if (w) { var on = !cur[w.dataset.flag]; record(); targets().forEach(function (x) { if (x.kind !== 'tray') x[w.dataset.flag] = on; }); changed(true); return; }
+    var t = e.target.closest('#tab-style [data-val]');
+    if (t) { record(); targets().forEach(function (x) { if (x.kind !== 'tray') x.tab_style = t.dataset.val; }); changed(true); }
+  });
+  function changed(geometry) {
+    if (geometry) info = null;
+    var big = targets().filter(function (x) { return ST.autoSplit(x, bed, newBins); });
+    if (big.length) ST.toast((big.length > 1 ? big.length + ' bins are' : ST.esc(big[0].name) + ' is') + ' too big for the printer bed, so ' + (big.length > 1 ? 'they' : 'it') + ' will print in pieces. Change that under Size.');
+    syncControls(); renderList(); summary(); renderDrawerTabs(); showMulti(); save();
+    if (geometry) scheduleRender(450);
+  }
+
+  function summary() {
+    if (!cur) { document.getElementById('bin-title').textContent = bins.length ? 'Pick a bin' : 'No bins yet'; return; }
+    var v = cur, W = v.w * ST.PITCH[0] - 0.5, D = v.d * ST.PITCH[1] - 0.5, H = v.h * 7 + (v.lip ? 3.55 : 0);
+    var inW = info && info.infill_mm ? info.infill_mm[0] : W - 2 * WALL, inD = info && info.infill_mm ? info.infill_mm[1] : D - 2 * WALL;
+    var iw = (inW - (v.divx - 1) * DIV) / v.divx, id = (inD - (v.divy - 1) * DIV) / v.divy;
+    out('wmm', v.w + '× · ' + ST.both(v.w * ST.PITCH[0])); out('dmm', v.d + '× · ' + ST.both(v.d * ST.PITCH[1]));
+    out('hmm', ST.both(v.h * 7) + (v.lip ? ' + lip' : ''));
+    out('hfit', maxH && H > maxH ? '<span class="st-warn-text">too tall for your printer: it prints up to ' + ST.pri(maxH) + '</span>' : !L || L.binU == null ? 'measure the drawer height to check the fit' : v.h <= L.binU ? 'drawer fits up to <b>' + L.binU + 'u</b>' : '<span class="st-warn-text">too tall: drawer fits up to ' + L.binU + 'u</span>');
+    out('cw', ST.pri(iw)); out('cd', ST.pri(id));
+    var ft = fit(v);
+    out('foot', ST.pair(W, D)); out('footSec', v.w + ' × ' + v.d + ' squares' + (ST.pitchText() ? ' of ' + ST.pitchText().replace(' squares', '') : '') + (ST.P.unit === 'in' ? ' · ' + ST.num(W) + ' × ' + ST.num(D) + ' mm' : '') +
+      (ft && !ft.ok && !pieces(v) ? '<br><span class="st-warn-text">Too big for the ' + ft.bed + ' printer bed. The largest bin that fits is ' + ft.largest + '. Turn on Print in pieces.</span>' : '') +
+      (pieces(v) ? '<br>Prints in ' + pieces(v).count + ' pieces with ' + JOINT[(v.split || {}).joint || 'clips'] : ''));
+    renderSplit();
+    out('hu', v.h + 'u'); out('hmm2', ST.pri(H) + (v.lip ? ' with lip' : ', no lip'));
+    out('cn', String(v.divx * v.divy)); out('csz', '≈ ' + ST.pair(iw, id) + ' each');
+    var cp = document.getElementById('comp-preview'); cp.style.gridTemplateColumns = 'repeat(' + v.divx + ',1fr)'; cp.style.gridTemplateRows = 'repeat(' + v.divy + ',1fr)';
+    cp.innerHTML = new Array(v.divx * v.divy + 1).join('<span style="border:1px solid var(--st-color-text-3);border-radius:2px"></span>');
+    document.getElementById('bin-title').textContent = v.name + ' · ' + v.w + '×' + v.d + ' · ' + v.h + 'u' + (v.divx * v.divy > 1 ? ' · ' + v.divx * v.divy + ' compartments' : '');
+  }
+  document.addEventListener('st:prefs', summary);
+
+  /* ---------------- print in pieces (bins bigger than the bed) ---------------- */
+  var AXIS = { x: 'Across the width', y: 'Along the depth, front to back' };
+  // clips are proven on real prints (2026-11-06); keys aren't yet: say so until they are (Settings → Joint test print)
+  var EXPERIMENTAL = ' Experimental: print the joint test (Settings) before a big bin.';
+  var JOINT_SUB = { clips: 'Plates inside the walls grip the next piece. Nothing extra to print. Try the joint test (Settings) to check the fit on your printer.',
+    keys: 'Print the keys too, then press them into the floor across each seam.' + EXPERIMENTAL, none: 'Pieces just sit side by side; the baseplate keeps them in line.' };
+  var lastSplit = null;  // the server's last answer for this bin's pieces (notes about joints it couldn't make)
+  function sizes(p) {  // "2 × 4, 2 × 3" or "4 × 2 (2), 3 × 2"
+    var n = {}, order = [];
+    p.y.forEach(function (c) { p.x.forEach(function (a) { var k = a + ' × ' + c; if (!n[k]) { n[k] = 0; order.push(k); } n[k]++; }); });
+    return order.map(function (k) { return k + (n[k] > 1 ? ' (' + n[k] + ')' : ''); }).join(', ') + ' squares';
+  }
+  function renderSplit() {
+    var box = document.getElementById('split-box'), v = cur, p = v && plan(v), ft = v && fit(v);
+    var show = !!p && ((ft && !ft.ok) || !!(v.split && v.split.on)) && targets().length < 2;  // pieces are set per bin
+    box.hidden = !show;
+    if (!show) return;
+    var on = !!(v.split && v.split.on), sp = v.split || {};
+    document.getElementById('split-on').setAttribute('aria-checked', String(on));
+    document.getElementById('split-sub').innerHTML = on ? p.count + ' pieces: ' + sizes(p) :
+      '<span class="st-warn-text">Too big for the ' + ft.bed + ' bed.</span> Cut it into ' + p.auto.x.length * p.auto.y.length + ' pieces that fit';
+    document.getElementById('split-opts').hidden = !on;
+    if (!on) return;
+    var joint = sp.joint || 'clips';
+    document.querySelectorAll('#split-joint [data-joint]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.joint === joint)); });
+    document.getElementById('split-joint-sub').textContent = JOINT_SUB[joint];
+    var html = '';
+    ['x', 'y'].forEach(function (a) {
+      var runs = p[a]; if (runs.length < 2) return;
+      html += '<div class="st-field"><span class="st-row__title">' + AXIS[a] + '</span><div class="st-split__runs">' + runs.map(function (r, i) {
+        var big = a === 'x' ? !p.y.every(function (c) { return ST.binFit(r, c, bed).ok; }) : !p.x.every(function (c) { return ST.binFit(c, r, bed).ok; });
+        return (i ? '<span class="st-split__cut"><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-cut="' + a + ':' + (i - 1) + ':-1" aria-label="Move cut ' + i + ' one square back"' + (runs[i - 1] <= 1 ? ' disabled' : '') + '>‹</button><span aria-hidden="true">✂</span><button class="st-btn st-btn--sm st-btn--ghost" type="button" data-cut="' + a + ':' + (i - 1) + ':1" aria-label="Move cut ' + i + ' one square on"' + (r <= 1 ? ' disabled' : '') + '>›</button></span>' : '') +
+          '<span class="st-split__run' + (big ? ' is-bad' : '') + '">' + r + '</span>';
+      }).join('') + '</div></div>';
+    });
+    if (p.custom) html += '<button class="st-btn st-btn--sm st-btn--ghost" type="button" id="split-auto" style="align-self:flex-start">Back to automatic cuts</button>';
+    document.getElementById('split-runs').innerHTML = html;
+    var notes = (lastSplit && lastSplit.notes) || [];
+    if (!p.fits) notes = ['A piece is still too big for the ' + ft.bed + ' bed. Move a cut, or go back to automatic cuts.'].concat(notes);
+    var n = document.getElementById('split-notes'); n.hidden = !notes.length; n.textContent = notes.join(' ');
+  }
+  document.getElementById('split-box').addEventListener('click', function (e) {
+    if (!cur) return;
+    var sw = e.target.closest('#split-on'), j = e.target.closest('[data-joint]'), c = e.target.closest('[data-cut]'), auto = e.target.closest('#split-auto');
+    var sp = Object.assign({ on: false, joint: 'clips', x: null, y: null }, cur.split || {});
+    if (sw) sp.on = !sp.on;
+    else if (j) sp.joint = j.dataset.joint;
+    else if (auto) { sp.x = null; sp.y = null; }
+    else if (c) {
+      var q = c.dataset.cut.split(':'), a = q[0], i = +q[1], dir = +q[2], runs = plan(cur)[a].slice();
+      runs[i] += dir; runs[i + 1] -= dir;
+      if (runs[i] < 1 || runs[i + 1] < 1) return;
+      sp[a] = runs;
+    } else return;
+    e.stopPropagation();
+    record();
+    cur.split = sp; lastSplit = null; changed(true);
+  });
+
+  /* ---------------- rendering ---------------- */
+  var R = document.getElementById('render'), lab = R.querySelector('.st-render__label'), time = R.querySelector('.st-render__time');
+  var renderBtn = document.getElementById('render-btn'), logBtn = document.getElementById('err-log');
+  var exp = document.getElementById('export-stl'), opn = document.getElementById('open-slicer');
+  var rTimer = null, tick = null, seq = 0, info = null, lastLog = '';
+  function setState(s, text, t) {
+    R.dataset.state = s; lab.textContent = text; time.textContent = t || '';
+    renderBtn.hidden = s === 'rendering' || s === 'ready';
+    renderBtn.querySelector('span').textContent = s === 'error' ? 'Retry' : 'Render';
+    logBtn.hidden = s !== 'error';
+    exp.disabled = opn.disabled = s !== 'ready';
+    if (vp) vp.setStale(s !== 'ready');
+  }
+  function scheduleRender(delay) {
+    clearTimeout(rTimer); clearInterval(tick); seq++;
+    setState('idle', 'Changes not rendered', '');
+    rTimer = setTimeout(render, delay);
+  }
+  function render() {
+    if (!cur) return;
+    var mine = ++seq, t0 = performance.now(), b = cur;
+    clearInterval(tick);
+    setState('rendering', 'Rendering', '0.0 s');
+    tick = setInterval(function () { time.textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
+    var split = !!pieces(b);
+    ST.api('POST', 'projects/' + pid + '/bins/render', split ? { bin: b, part: 'pieces' } : { bin: b }).then(function (r) {
+      return Promise.resolve(vpReady).then(function () {
+        if (!vp) return null;
+        if (!r.pieces) return vp.loadSTL('/api/projects/' + pid + '/files/cache/' + r.file);
+        var f = filOf(b), url = function (file) { return '/api/projects/' + pid + '/files/cache/' + file; };
+        var list = r.pieces.map(function (p) { return { url: url(p.file), x: p.x, y: p.y, color: f && f.color, kind: f && f.material }; });
+        var kw = r.keys ? r.keys.count * 14 + 20 : 0;  // keys laid out to the left of the pieces
+        if (r.keys) list.push({ url: url(r.keys.file), x: -kw, y: 0, color: f && f.color, kind: f && f.material });
+        var W = Math.max.apply(null, r.pieces.map(function (p) { return p.x; })) + ST.PITCH[0] * Math.max.apply(null, r.x) + kw;
+        var D = Math.max.apply(null, r.pieces.map(function (p) { return p.y; })) + ST.PITCH[1] * Math.max.apply(null, r.y);
+        list.forEach(function (p) { p.x += kw; });
+        return vp.loadAssembly({ parts: list, drawer: { W: W, D: D, fx: 0, fy: 0, ghost: false } });
+      }).then(function () { return r; });
+    }).then(function (r) {
+      if (mine !== seq) return;
+      clearInterval(tick); info = r; lastSplit = r.pieces ? r : null; summary();
+      setState('ready', 'Ready', r.cached ? 'from cache' : 'rendered in ' + r.seconds.toFixed(1) + ' s');
+    }, function (e) {
+      if (mine !== seq) return;
+      clearInterval(tick); lastLog = e.log || e.message;
+      setState('error', 'OpenSCAD stopped: ' + e.message.split('. ')[0], ((performance.now() - t0) / 1000).toFixed(1) + ' s');
+    });
+  }
+  renderBtn.addEventListener('click', render);
+  logBtn.addEventListener('click', function () {
+    ST.dialog({ title: 'OpenSCAD log', text: '<pre class="st-log">' + ST.esc(lastLog) + '</pre>', confirm: 'Close' });
+  });
+
+  /* ---------------- export ---------------- */
+  exp.addEventListener('click', function () {
+    if (!cur) return;
+    var b = cur; exp.disabled = true;
+    flushNow().then(function () { return ST.api('POST', 'projects/' + pid + '/bins/' + b.id + '/export'); }).then(function (r) {
+      var t = ST.toast('Saved ' + (r.files.length > 1 ? r.files.length + ' files for ' + ST.esc(b.name) : ST.esc(r.file)) + ' to the drawer’s exports folder.', 'success', 'Show folder');
+      var a = t && t.querySelector('.st-toast__action');
+      if (a) a.addEventListener('click', function () { ST.reveal(pid, 'exports'); });
+    }, function (e) { ST.toast('Export failed: ' + ST.esc(e.message), 'error'); })
+      .then(function () { exp.disabled = R.dataset.state !== 'ready'; });
+  });
+  opn.addEventListener('click', function () {
+    if (!cur) return;
+    var b = cur; opn.disabled = true;
+    flushNow().then(function () { return ST.api('POST', 'projects/' + pid + '/bins/' + b.id + '/export'); })
+      .then(function (r) { return ST.api('POST', 'projects/' + pid + '/open', { files: r.files }); })
+      .then(function (r) { ST.openedToast(r); },
+            function (e) { ST.toast(ST.esc(e.message), 'error'); })
+      .then(function () { opn.disabled = R.dataset.state !== 'ready'; });
+  });
+
+  /* ---------------- New bin menu ---------------- */
+  var nb = document.getElementById('newbin-btn'), nm = document.getElementById('newbin-menu');
+  document.querySelectorAll('[data-plink]').forEach(function (a) { a.href = a.getAttribute('href') + '?p=' + pid; });
+  nb.addEventListener('click', function (e) { e.stopPropagation(); var o = nm.hidden; nm.hidden = !o; nb.setAttribute('aria-expanded', String(o)); if (o) nm.querySelector('.st-menu__item').focus(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('#newbin')) { nm.hidden = true; nb.setAttribute('aria-expanded', 'false'); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !nm.hidden) { nm.hidden = true; nb.setAttribute('aria-expanded', 'false'); nb.focus(); } });
+  document.getElementById('new-bin').addEventListener('click', function () { nm.hidden = true; });
+
+  /* ---------------- start ---------------- */
+  var want = location.hash.slice(1);
+  select(bins.filter(function (b) { return b.id === want; })[0] || bins[0]);
+});
+</script>
+</body>
+</html>

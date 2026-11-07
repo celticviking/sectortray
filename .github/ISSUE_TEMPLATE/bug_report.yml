@@ -1,0 +1,68 @@
+name: Something's wrong
+description: SectorTray did something unexpected, broke, or a print didn't fit.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for testing SectorTray. Short and specific beats long. One problem per issue, please.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Installing or starting the app
+        - Projects
+        - Planner (drawer size, baseplate)
+        - Bins
+        - Layout
+        - Silverware wizard
+        - Print list / PrusaSlicer
+        - Settings
+        - A printed part (fit, size, joints)
+        - Somewhere else
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: The steps, in order, so it can be repeated.
+      placeholder: |
+        1. Opened Bins on the "Kitchen" drawer
+        2. Set width to 7 and turned on Print in pieces
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+  - type: input
+    id: version
+    attributes:
+      label: SectorTray version
+      description: Settings → About (or the zip's name).
+      placeholder: "0.2.0"
+  - type: input
+    id: printer
+    attributes:
+      label: Printer and filament
+      description: Only matters for print problems.
+      placeholder: Prusa CORE One, Prusament PETG
+  - type: textarea
+    id: log
+    attributes:
+      label: Server log (last lines)
+      description: "PowerShell: Get-Content $env:LOCALAPPDATA\\SectorTray\\server.log -Tail 40. Replace your Windows user name with <me>."
+      render: text
+  - type: textarea
+    id: pictures
+    attributes:
+      label: Screenshots or photos
+      description: Drag images in here. Photos of a bad print help a lot.

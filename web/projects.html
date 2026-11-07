@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script src="js/st.js" defer></script>
+<script src="js/phase2.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html" aria-current="page">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+  <div class="st-page-head">
+    <div>
+      <h1 class="st-page-head__title">Drawers</h1>
+      <p class="st-page-head__meta" id="proj-meta">Loading…</p>
+    </div>
+    <div class="st-page-head__actions">
+      <button class="st-btn" type="button" id="import" title="Add a drawer someone shared with you (a .sectortray file)">Open a drawer file…</button>
+      <input type="file" id="import-file" accept=".sectortray,.json,application/json" hidden>
+      <button class="st-btn st-btn--primary" type="button" data-new><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> New drawer</button>
+    </div>
+  </div>
+
+  <section id="list" class="st-cards" aria-label="Saved drawers" hidden></section>
+
+  <section id="empty" class="st-panel" hidden aria-labelledby="empty-title">
+    <div class="st-empty">
+      <div class="st-empty__art">drawer outline · 42 mm grid</div>
+      <h2 class="st-empty__title" id="empty-title">No drawers yet</h2>
+      <p class="st-empty__text">Measure the inside of a drawer with your tape measure. Fractions like 14 3/8 are fine. SectorTray fits the 42 mm Gridfinity grid to it and splits the baseplate into pieces your printer can handle.</p>
+      <ol class="st-empty__steps"><li>Measure width, depth, height</li><li>Check the plan</li><li>Print the pieces</li></ol>
+      <div class="st-btn-row" style="justify-content:center">
+        <button class="st-btn st-btn--primary" type="button" data-new><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-ruler"/></svg> Plan your first drawer</button>
+        <span class="st-hint"><button class="st-btn st-btn--ghost st-hint__btn" style="width:auto;height:40px;border-radius:var(--st-btn-radius);border:0;font-size:var(--st-text-md);font-family:var(--st-font-ui);padding:0 12px" type="button" aria-expanded="false">What’s Gridfinity?</button><span class="st-hint__pop" role="tooltip">A free, modular storage system. A printed <b>baseplate</b> with a 42 mm grid sits in the drawer, and <b>bins</b> sized in whole grid squares snap into it. Move them around any time.</span></span>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+<script>
+document.addEventListener('st:shell', function () {
+  var projects = [], dataDir = '';
+
+  /* First launch: which printer? (bed size drives every split) */
+  ST.api('GET', 'settings').then(function (s) {
+    if (s.printer_confirmed) return;
+    var cur = ST.printerPreset(s.printer), opts = ST.PRINTERS.map(function (x, i) {
+      return '<option value="' + i + '"' + (cur === x ? ' selected' : '') + '>' + ST.esc(x.name) + ' \u00b7 ' + x.bed_w + ' \u00d7 ' + x.bed_d + ' mm bed</option>';
+    }).join('') + '<option value="custom">Something else (set its bed size in Settings)</option>';
+    ST.dialog({
+      title: 'Which printer do you use?',
+      text: 'SectorTray splits baseplates and big bins so every piece fits your printer\u2019s bed. You can change this any time in Settings.',
+      html: '<div class="st-field"><label class="st-field__label" for="first-printer">Printer</label><select class="st-select" id="first-printer">' + opts + '</select></div>',
+      confirm: 'Use this printer', cancel: 'Not now',
+      onConfirm: function () { return document.getElementById('first-printer').value; }
+    }).then(function (v) {
+      var m = v != null && v !== 'custom' ? ST.PRINTERS[+v] : null;
+      return ST.api('PATCH', 'settings', { printer: m ? Object.assign({}, m) : s.printer }).then(function (r) {
+        if (v === 'custom') location.href = 'settings.html#printer';
+        else ST.toast('Printer: ' + ST.esc(r.printer.name) + ' (' + r.printer.bed_w + ' \u00d7 ' + r.printer.bed_d + ' mm bed). Change it in Settings.', 'success');
+      });
+    }).catch(function (e) { ST.toast(ST.esc(e.message), 'error'); });
+  }, function () {});
+  var list = document.getElementById('list'), empty = document.getElementById('empty'), meta = document.getElementById('proj-meta');
+
+  function ago(iso) {
+    var s = (Date.now() - Date.parse(iso)) / 1000;
+    if (!(s >= 0)) return '';
+    if (s < 90) return 'Edited just now';
+    var m = s / 60, h = m / 60, d = h / 24;
+    if (m < 60) return 'Edited ' + Math.round(m) + ' min ago';
+    if (h < 24) return 'Edited ' + Math.round(h) + ' h ago';
+    if (d < 2) return 'Edited yesterday';
+    if (d < 21) return 'Edited ' + Math.round(d) + ' days ago';
+    if (d < 60) return 'Edited ' + Math.round(d / 7) + ' weeks ago';
+    return 'Edited ' + new Date(iso).toLocaleDateString();
+  }
+
+  function card(p) {
+    var dr = p.drawer || {}, L = p.layout && !p.layout.error ? p.layout : null, measured = dr.width_mm && dr.depth_mm;
+    var thumb = L ? miniLayout(p, L) : '<div class="st-card__unmeasured">' + (p.layout && p.layout.error ? 'Too small for a grid' : 'Not measured yet') + '</div>';
+    var dims = measured ? ST.pri(dr.width_mm) + ' × ' + ST.pri(dr.depth_mm) + (dr.height_mm ? ' × ' + ST.pri(dr.height_mm) : '') : 'Add the drawer size in the planner';
+    var info = L ? L.nx + ' × ' + L.ny + ' grid · ' + L.pieces.length + (L.pieces.length === 1 ? ' piece · ' : ' pieces · ') + (p.bins || []).length + ' bins' : (p.bins || []).length + ' bins';
+    return '<div class="st-card-wrap" data-id="' + ST.esc(p.id) + '">' +
+      '<a class="st-panel st-card" href="planner.html?p=' + encodeURIComponent(p.id) + '" aria-label="' + ST.esc(p.name) + '">' +
+        '<div class="st-card__thumb" aria-hidden="true">' + thumb + '</div>' +
+        '<div class="st-card__body">' +
+          '<span class="st-project-tag">' + ST.esc(p.tag || p.name) + '</span>' +
+          (p.tag && p.tag !== p.name ? '<span class="st-card__name">' + ST.esc(p.name) + '</span>' : '') +
+          '<span class="st-card__dims">' + dims + '</span>' +
+          '<span class="st-card__meta"><span>' + info + '</span><span>' + ago(p.updated) + '</span></span>' +
+        '</div></a>' +
+      '<div class="st-card__actions">' +
+        '<button class="st-btn st-btn--sm" type="button" data-act="rename">Rename</button>' +
+        '<button class="st-btn st-btn--sm" type="button" data-act="share" title="Save this drawer\u2019s design as a file you can send to someone">Save as file</button>' +
+        '<button class="st-btn st-btn--sm st-btn--danger" type="button" data-act="delete">Delete</button>' +
+      '</div></div>';
+  }
+
+  function render() {
+    list.innerHTML = projects.map(card).join('') +
+      '<button class="st-card st-card--new" type="button" data-new><svg class="st-icon st-icon--lg" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span>Plan another drawer</span></button>';
+    list.hidden = !projects.length; empty.hidden = !!projects.length;
+    meta.textContent = projects.length ? projects.length + ' saved · stored on this PC' : 'Nothing saved yet';
+    if (dataDir) meta.title = dataDir;
+  }
+
+  /* Thumbnail: the drawer's grid with its placed bins in their filament colors (Layout editor data) */
+  var FILS = {}, DEF_FIL = null;
+  function miniLayout(p, L) {
+    var designs = (p.bins || []).map(function (b) { return { id: b.id, name: b.name, w: b.w, d: b.d, u: b.h, qty: b.qty, fil: b.filament || DEF_FIL, kind: b.kind || 'bin' }; });
+    var placed = (p.placements || []).map(function (q) { return { key: q.key, design: q.bin, x: q.x, y: q.y, rot: q.rot }; })
+      .filter(function (q) { return designs.some(function (d) { return d.id === q.design; }); });
+    if (!placed.length) return ST.planSVG(L, { mini: true, id: p.id });
+    var A = ST.P2.analyzeLayout(L, placed, designs);
+    return ST.P2.layoutSVG(L, { mini: true, id: p.id, A: A, designs: designs, placed: placed, fils: FILS });
+  }
+
+  function load() {
+    return Promise.all([ST.api('GET', 'projects'), ST.api('GET', 'settings')]).then(function (r) {
+      r[1].filaments.forEach(function (f) { FILS[f.id] = { name: f.name, type: f.material, color: f.color }; });
+      DEF_FIL = r[1].filaments[0] && r[1].filaments[0].id;
+      projects = r[0].projects; render();
+    },
+      function (e) { meta.textContent = e.message; });
+  }
+
+  function find(id) { return projects.filter(function (p) { return p.id === id; })[0]; }
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-new]')) { ST.newDrawer(); return; }
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var p = find(b.closest('[data-id]').dataset.id); if (!p) return;
+    if (b.dataset.act === 'share') {
+      ST.api('GET', 'projects/' + p.id + '/share').then(function (data) {
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (p.name.replace(/[\\/:*?"<>|]+/g, ' ').trim() || p.id) + '.sectortray';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+        ST.toast('Saved ' + ST.esc(a.download) + ' to your Downloads folder. Send it to someone with SectorTray; they open it with Open a drawer file.', 'success');
+      }, function (e) { ST.toast(ST.esc(e.message), 'error'); });
+      return;
+    }
+    if (b.dataset.act === 'rename') {
+      ST.dialog({
+        title: 'Rename drawer',
+        fields: [{ name: 'name', label: 'Name', value: p.name }, { name: 'tag', label: 'Short label', value: p.tag, max: 40 }],
+        confirm: 'Save',
+        // a short label that was just the name (the default) follows the new name unless it was edited here too
+        onConfirm: function (v) {
+          var follows = !v.tag || (v.tag === p.tag && (!p.tag || p.tag === p.name));
+          return ST.api('PATCH', 'projects/' + p.id, { name: v.name, tag: follows ? v.name : v.tag });
+        }
+      }).then(function (r) { if (r) { ST.toast('Renamed to ' + ST.esc(r.name), 'success'); load(); } });
+    } else {
+      ST.dialog({
+        title: 'Delete drawer',
+        text: 'Delete <b>' + ST.esc(p.name) + '</b>? Its folder moves to the <b>.trash</b> folder inside your SectorTray data folder, so you can still get it back by hand.',
+        confirm: 'Delete', danger: true,
+        onConfirm: function () { return ST.api('DELETE', 'projects/' + p.id); }
+      }).then(function (r) { if (r) { ST.forgetProject(p.id); ST.toast('Deleted ' + ST.esc(p.name), 'success'); load(); } });
+    }
+  });
+
+  /* open a shared drawer file: added as a new drawer (the server checks everything in it) */
+  var picker = document.getElementById('import-file');
+  document.getElementById('import').addEventListener('click', function () { picker.value = ''; picker.click(); });
+  picker.addEventListener('change', function () {
+    var f = picker.files[0]; if (!f) return;
+    if (f.size > 2e6) { ST.toast('That file is too big to be a SectorTray drawer.', 'error'); return; }
+    f.text().then(function (t) {
+      var data; try { data = JSON.parse(t); } catch (e) { throw new Error('That isn\u2019t a SectorTray drawer file.'); }
+      return ST.api('POST', 'import', data);
+    }).then(function (doc) {
+      ST.toast('Added <b>' + ST.esc(doc.name) + '</b>. Export its parts from the Print List to print them.', 'success');
+      load();
+    }, function (e) { ST.toast(ST.esc(e.message), 'error'); });
+  });
+
+  ST.api('GET', 'health').then(function (h) { dataDir = 'Saved in ' + h.data_dir; meta.title = dataDir; }, function () {});
+  document.addEventListener('st:prefs', render);
+  load();
+  // sent here from another tab (Planner, Bins…) before any drawer was open
+  if (new URLSearchParams(location.search).get('first')) {
+    history.replaceState(null, '', 'projects.html');
+    ST.toast('Pick a drawer or make a new one first. The other tabs work on the drawer you have open.');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer planner · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="phase2.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script src="js/st.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app st-app--fixed">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  <span class="st-project-tag" hidden></span>
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html" aria-current="page">Planner</a><a class="st-tab" href="bin-builder.html">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+<div class="st-layout st-layout--planner">
+  <div class="st-col">
+    <section class="st-panel" aria-labelledby="h-drawer">
+      <div class="st-panel__head"><span class="st-panel__num">1.1</span><h2 class="st-tag"><span id="h-drawer">Drawer · inside</span></h2><span class="st-panel__aside"><span class="st-saved" id="saved" aria-live="polite"></span></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-field" data-dim="w">
+  <label class="st-field__label" for="dim-w">Width<span class="st-field__sub">side to side</span></label>
+  <input class="st-field__input" id="dim-w" placeholder="e.g. 14 3/8" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span><span class="st-field__tol"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+        <div class="st-field" data-dim="d">
+  <label class="st-field__label" for="dim-d">Depth<span class="st-field__sub">front to back</span></label>
+  <input class="st-field__input" id="dim-d" placeholder="e.g. 19 1/2" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span><span class="st-field__tol"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+        <div class="st-field" data-dim="h" data-min="14">
+  <label class="st-field__label" for="dim-h">Height<span class="st-field__sub">inside, to the top</span></label>
+  <input class="st-field__input" id="dim-h" placeholder="e.g. 2 3/4" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span><span class="st-field__tol"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">1.2</span><h2 class="st-tag">Baseplate</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row">
+          <div class="st-row__label"><span class="st-row__title">Magnet holes <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Round pockets in each square for <b>6 × 2 mm</b> disc magnets. Bins with matching magnets snap down and won’t slide when the drawer slams.</span></span></span><span class="st-row__sub" id="mag-sub">6 × 2 mm, 4 per square</span></div>
+          <button class="st-switch" type="button" role="switch" aria-checked="true" aria-label="Magnet holes" id="mag"></button>
+        </div>
+        <div class="st-field">
+          <span class="st-row__title">Plate style <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>Standard</b>: thin floor with cut-outs and magnet pockets (9.35 mm tall).<br><b>Lite</b>: open frame, no floor, fastest print, no magnets (5 mm).<br><b>Weighted</b>: thick floor with pockets for steel weights, so the plate stays put without glue (11.4 mm).</span></span></span>
+          <div class="st-seg st-seg--block st-seg--text" role="group" id="plate" aria-label="Plate style"><button class="st-seg__btn" type="button" aria-pressed="true" data-val="Standard">Standard</button><button class="st-seg__btn" type="button" aria-pressed="false" data-val="Lite">Lite</button><button class="st-seg__btn" type="button" aria-pressed="false" data-val="Weighted">Weighted</button></div>
+          <span class="st-row__sub" id="plate-hint"></span>
+        </div>
+        <div class="st-field">
+          <span class="st-row__title">Grid size <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip"><b>Standard</b>: 42 mm Gridfinity squares, so bins fit any Gridfinity baseplate; the leftover becomes a filler strip. <b>Fit to drawer</b>: squares a little smaller or bigger than 42 mm so the grid fills the whole drawer with no border. Bins made for a fitted drawer only fit that drawer (and others with the same square size).</span></span></span>
+          <div class="st-seg st-seg--block st-seg--text" role="group" id="grid-mode" aria-label="Grid size"><button class="st-seg__btn" type="button" data-grid="standard">Standard 42 mm</button><button class="st-seg__btn" type="button" data-grid="fit">Fit to drawer</button></div>
+          <span class="st-row__sub" id="grid-hint"></span>
+        </div>
+        <div class="st-field" id="align-field">
+          <span class="st-row__title">Grid position <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Gridfinity squares are 42 mm, so a drawer rarely fits them exactly. The leftover becomes a flat <b>filler</b> strip. <b>Centered</b> splits it between both sides; pick a side to push the bins tight against that wall and put all the filler on the other side.</span></span></span>
+          <div class="st-seg st-seg--block st-seg--text" role="group" id="align-x" aria-label="Grid position across the drawer"><button class="st-seg__btn" type="button" data-ax="left">Left</button><button class="st-seg__btn" type="button" data-ax="center">Centered</button><button class="st-seg__btn" type="button" data-ax="right">Right</button></div>
+          <div class="st-seg st-seg--block st-seg--text" role="group" id="align-y" aria-label="Grid position front to back"><button class="st-seg__btn" type="button" data-ay="back">Back</button><button class="st-seg__btn" type="button" data-ay="center">Centered</button><button class="st-seg__btn" type="button" data-ay="front">Front</button></div>
+          <span class="st-row__sub" id="align-hint"></span>
+        </div>
+        <div class="st-row" style="border-top:1px solid var(--st-color-border);padding-top:10px">
+          <span class="st-row__sub">Printer</span><a href="settings.html#printer" class="st-row__sub" style="color:var(--st-color-text);font-weight:600" id="printer-link">Prusa CORE One · 250 × 220 mm</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="st-panel st-panel--mat" aria-label="Plan view">
+    <div class="st-panel__head"><span class="st-panel__num">Fig. 1</span><h2 class="st-tag" id="plan-title">Plan · top down</h2><span class="st-panel__aside"><span id="dims-note">Dimensions in <span data-unit-name>inches</span></span> <span class="st-seg st-seg--text" role="group" aria-label="Plan or 3D view" id="plan-mode"><button class="st-seg__btn" type="button" data-mode="plan" aria-pressed="true">Plan</button><button class="st-seg__btn" type="button" data-mode="3d" aria-pressed="false">3D</button></span></span></div>
+    <div class="st-plan__wrap" id="plan"></div>
+    <div class="st-empty" id="plan-empty" hidden><h2 class="st-empty__title" id="plan-empty-title">Measure the drawer</h2><p class="st-empty__text" id="plan-empty-text"></p></div>
+    <div class="st-viewport" id="plan3d" hidden>
+      <div class="st-viewport__placeholder"><div class="st-viewport__note" id="plan3d-note">Loading the 3D view…</div></div>
+      <div class="st-viewport__bar st-viewport__bar--top"><div class="st-seg st-seg--text" role="group" aria-label="View" id="plan3d-views"><button class="st-seg__btn" type="button" aria-pressed="true" data-view="iso">Iso</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view="top">Top</button><button class="st-seg__btn" type="button" aria-pressed="false" data-view="front">Front</button></div></div>
+      <div class="st-viewport__bar st-viewport__bar--bottom"><div class="st-render" id="plan3d-render" data-state="idle" role="status" aria-live="polite"><span class="st-render__dot"></span><span class="st-render__label">Not rendered</span><span class="st-render__time"></span><span class="st-render__bar"></span></div></div>
+    </div>
+    <div class="st-panel__foot st-legend" style="border-top:0" id="legend-plan">
+      <span class="st-legend__item"><span class="st-legend__swatch st-legend__swatch--hatch"></span>Filler strip</span>
+      <span class="st-legend__item"><span class="st-legend__swatch"></span>Printable piece</span>
+      <span class="st-legend__item"><span class="st-legend__swatch st-legend__swatch--bed"></span><span id="bed-legend">Printer bed 250 × 220</span></span>
+      <span class="st-legend__hint">Hover or click a piece to check the fit</span>
+    </div>
+    <div class="st-panel__foot st-legend" style="border-top:0" id="legend-3d" hidden>
+      <span class="st-legend__item"><span class="st-legend__swatch"></span>Drawer, inside</span>
+      <span class="st-legend__item"><span class="st-legend__swatch" style="border-color:var(--st-color-accent)"></span>Drawer top</span>
+      <span class="st-legend__item"><span class="st-legend__swatch" style="border-style:dashed;border-color:var(--st-color-accent)"></span><span id="bin-legend">Tallest bin that fits</span></span>
+      <span class="st-legend__hint">Drag to orbit · right-drag to pan · scroll to zoom</span>
+    </div>
+  </section>
+
+  <div class="st-col" style="overflow:auto">
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">2.1</span><h2 class="st-tag">Readout</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-readout">
+        <div class="st-readout__hero"><span class="st-readout__label">Grid</span><span class="st-readout__value" data-out="grid"></span><span class="st-readout__sub" data-out="gridSub"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Leftover W</span><span class="st-readout__value" data-out="gapW"></span><span class="st-readout__sub" data-out="gapWSub"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Leftover D</span><span class="st-readout__value" data-out="gapD"></span><span class="st-readout__sub" data-out="gapDSub"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Tallest bin <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Bin heights are counted in <b>u</b>: one u is 7 mm. This is the tallest bin that clears the drawer top, counting the baseplate, the 3.5 mm stacking lip and 1 mm of headroom.</span></span></span><span class="st-readout__value" data-out="binU"></span><span class="st-readout__sub" data-out="binSub"></span></div>
+        <div class="st-readout__cell"><span class="st-readout__label">Magnets</span><span class="st-readout__value" data-out="mag"></span><span class="st-readout__sub" data-out="magSub"></span></div>
+      </div>
+    </section>
+    <section class="st-panel">
+      <div class="st-panel__head"><span class="st-panel__num">2.2</span><h2 class="st-tag">Pieces · <span data-out="count"></span></h2><span class="st-panel__aside"><span data-out="split"></span></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-chips" id="chips"></div>
+        <p class="st-row__sub" id="active-note" aria-live="polite"></p>
+      </div>
+    </section>
+    <div id="plate-issue" hidden></div>
+    <div class="st-btn-stack" style="margin-top:auto">
+      <button class="st-btn st-btn--primary st-btn--lg st-btn--split" type="button" id="export"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-export"/></svg><span style="margin-right:auto" id="export-label">Export baseplate</span><span class="st-btn__meta"><span data-out="count"></span> × STL</span></button>
+      <a class="st-btn st-btn--split" href="bin-builder.html" id="next-bins">Next: build bins <svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-chevron-right"/></svg></a>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+<script>
+document.addEventListener('st:shell', function (ev) {
+  var project = ev.detail.project;
+  if (!project) { location.replace('projects.html?first=1'); return; }
+  var pid = encodeURIComponent(project.id);
+  document.getElementById('next-bins').href = 'bin-builder.html?p=' + pid;
+
+  var dr = project.drawer, bp = project.baseplate;
+  var vals = { w: dr.width_mm, d: dr.depth_mm, h: dr.height_mm }, mag = bp.magnets, plate = bp.style;
+  var align = { x: (bp.align && bp.align.x) || 'center', y: (bp.align && bp.align.y) || 'center' };
+  var gridMode = bp.grid || 'standard';
+  var KEYS = { w: 'width_mm', d: 'depth_mm', h: 'height_mm' };
+  var L = project.layout && !project.layout.error ? project.layout : null, layoutError = project.layout && project.layout.error;
+  var plan = null, hydrating = true;
+  var planEl = document.getElementById('plan'), planEmpty = document.getElementById('plan-empty');
+  var out = function (k, html) { document.querySelectorAll('[data-out="' + k + '"]').forEach(function (el) { el.innerHTML = html; }); };
+
+  /* ---- saving (debounced; only valid readings are saved) ---- */
+  var pending = {}, timer = null, savedEl = document.getElementById('saved');
+  function save(changes) {
+    Object.keys(changes).forEach(function (k) {
+      var cur = pending[k] || {}, add = changes[k];
+      if (add.input) cur.input = Object.assign(cur.input || {}, add.input);
+      Object.keys(add).forEach(function (f) { if (f !== 'input') cur[f] = add[f]; });
+      pending[k] = cur;
+    });
+    savedEl.textContent = 'Saving';
+    clearTimeout(timer); timer = setTimeout(flush, 400);
+  }
+  function flush() {
+    timer = null;
+    var body = pending; pending = {};
+    return ST.api('PATCH', 'projects/' + pid, body).then(function () {
+      checkExports();
+      savedEl.textContent = 'Saved'; savedEl.classList.remove('is-error');
+    }, function (e) { savedEl.textContent = 'Not saved'; savedEl.classList.add('is-error'); ST.toast(ST.esc(e.message), 'error'); throw e; });
+  }
+  function flushNow() { if (!timer) return Promise.resolve(); clearTimeout(timer); return flush(); }
+  ST.onSaveNow(flushNow);
+  window.addEventListener('pagehide', function () {
+    if (!timer) return;
+    clearTimeout(timer);
+    fetch('/api/projects/' + pid, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending), keepalive: true });
+  });
+
+  /* Typed text is kept as typed, plus an explicit unit if none was typed,
+     so reopening the drawer in either unit mode reads it the same way. */
+  var HAS_UNIT = /(mm|cm|in|inch|inches|"|″|”)\.?\s*$/i;
+  function rawWithUnit(raw, mm) {
+    raw = raw.trim();
+    if (HAS_UNIT.test(raw)) return raw;
+    var asIn = ST.parse(raw + '"', 'in', 0);
+    return asIn.mm && Math.abs(asIn.mm - mm) < 1e-6 ? raw + '"' : raw + ' mm';
+  }
+
+  /* ---- layout comes from the server (sectortray/layout.py) ---- */
+  var seq = 0, layoutTimer = null;
+  function relayout() {
+    clearTimeout(layoutTimer);
+    if (!(vals.w && vals.d)) { L = null; layoutError = null; draw(); return; }
+    layoutTimer = setTimeout(function () {
+      var mine = ++seq;
+      ST.api('POST', 'layout', { drawer: { width_mm: vals.w, depth_mm: vals.d, height_mm: vals.h || null }, baseplate: { style: plate, magnets: mag, align: align, grid: gridMode } })
+        .then(function (r) { if (mine === seq) { L = r; layoutError = null; ST.setPitch(r.pitch); draw(); } },
+              function (e) { if (mine === seq && !e.offline) { L = null; layoutError = e.message; draw(); } });
+    }, 80);
+  }
+  function draw() {
+    if (typeof showAlign === 'function') showAlign();
+    if (typeof showGrid === 'function') showGrid();
+    if (!L) {
+      planEl.hidden = true; planEmpty.hidden = false;
+      document.getElementById('plan-empty-title').textContent = layoutError ? 'This drawer can’t take a grid' : 'Measure the drawer';
+      document.getElementById('plan-empty-text').textContent = layoutError ||
+        'Enter the inside width and depth on the left. Fractions like 14 3/8 are fine. The plan appears as soon as both are read.';
+      plan3d.hidden = true;
+    } else {
+      planEmpty.hidden = true;
+      planEl.hidden = mode === '3d';
+      plan3d.hidden = mode !== '3d';
+      if (plan) plan.update(L); else plan = ST.mountPlan(planEl, { L: L, active: 'A1', id: 'planner', onActive: renderChips });
+      if (mode === '3d') schedule3d(vp3 && vp3.hasModel ? 500 : 0);
+    }
+    summary();
+  }
+
+  /* ---------------- Plan | 3D ---------------- */
+  var mode = 'plan';
+  try { mode = localStorage.getItem('st.planView') === '3d' ? '3d' : 'plan'; } catch (e) { /* storage off */ }
+  var plan3d = document.getElementById('plan3d'), vp3 = null, vp3Ready = null, filaments = null, t3 = null, seq3 = 0, tick3 = null;
+  var P3 = document.getElementById('plan3d-render'), p3lab = P3.querySelector('.st-render__label'), p3time = P3.querySelector('.st-render__time');
+  function pill(state, text, t) { P3.dataset.state = state; p3lab.textContent = text; p3time.textContent = t || ''; }
+  function setMode(m) {
+    mode = m;
+    try { localStorage.setItem('st.planView', m); } catch (e) { /* storage off */ }
+    document.querySelectorAll('#plan-mode [data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === m)); });
+    document.getElementById('plan-title').textContent = m === '3d' ? '3D \u00b7 drawer view' : 'Plan \u00b7 top down';
+    document.getElementById('legend-plan').hidden = m === '3d';
+    document.getElementById('legend-3d').hidden = m !== '3d';
+    document.getElementById('dims-note').hidden = m === '3d';
+    draw();
+  }
+  document.getElementById('plan-mode').addEventListener('click', function (e) { var b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+  document.getElementById('plan3d-views').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]'); if (!b) return;
+    this.querySelectorAll('[data-view]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    if (vp3) vp3.setView(b.dataset.view);
+  });
+  function ensureVp() {
+    if (!vp3Ready) vp3Ready = import('./js/viewport.js').then(function (m) {
+      vp3 = m.createViewport(plan3d);
+      if (vp3.unavailable) document.getElementById('plan3d-note').textContent = 'The 3D view needs WebGL, which this browser has turned off.';
+      return vp3;
+    });
+    return vp3Ready;
+  }
+  function schedule3d(delay) {
+    clearTimeout(t3); clearInterval(tick3); seq3++;
+    pill('idle', 'Changes not rendered', '');
+    if (vp3) vp3.setStale(true);
+    t3 = setTimeout(render3d, delay);
+  }
+  function render3d() {
+    if (!L || mode !== '3d') return;
+    var mine = ++seq3, lay = L, t0 = performance.now();
+    clearInterval(tick3);
+    pill('rendering', 'Rendering ' + lay.pieces.length + ' pieces', '0.0 s');
+    tick3 = setInterval(function () { p3time.textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
+    var fils = filaments ? Promise.resolve(filaments) : ST.api('GET', 'settings').then(function (st) { filaments = st.filaments; return filaments; });
+    Promise.all([ensureVp(), fils, flushNow()]).then(function () {
+      return ST.api('POST', 'projects/' + pid + '/preview/baseplate');
+    }).then(function (r) {
+      if (mine !== seq3) return null;
+      var f = filaments.filter(function (x) { return x.id === (project.baseplate && project.baseplate.filament); })[0] || filaments[0];
+      var byId = {}; lay.pieces.forEach(function (p) { byId[p.id] = p; });
+      var list = r.files.map(function (x) { var p = byId[x.piece]; return { id: x.piece, url: '/api/projects/' + pid + '/files/cache/' + x.file, x: p.x, y: p.y, color: f.color, kind: f.material }; });
+      var seat = lay.plate.height - 4.981;  // where a bin's feet rest: measured in OpenSCAD, 4.369 mm up in a 9.35 mm plate
+      return vp3.loadAssembly({ parts: list, drawer: { W: lay.W, D: lay.D, H: lay.H, fx: lay.fx, fy: lay.fy, pitch: lay.pitch, ghost: true,
+        plateH: lay.plate.height, binBottom: seat, binTop: lay.bin_max_mm ? seat + lay.bin_max_mm : null } }).then(function () { return r; });
+    }).then(function (r) {
+      if (!r || mine !== seq3) return;
+      clearInterval(tick3); vp3.setStale(false); vp3.highlight(plan ? plan.active() : null);
+      pill('ready', 'Ready', r.rendered ? 'rendered in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s' : 'from cache');
+      document.getElementById('bin-legend').textContent = lay.binU ? 'Tallest bin that fits (' + lay.binU + 'u)' : 'Enter the drawer height to see the tallest bin';
+    }, function (e) {
+      if (mine !== seq3) return;
+      clearInterval(tick3);
+      pill('error', 'Couldn\u2019t render: ' + e.message.split('. ')[0], '');
+    });
+  }
+
+  function summary() {
+    var exp = document.getElementById('export');
+    exp.disabled = !L || exporting;
+    if (!L) {
+      ['grid', 'gapW', 'gapD', 'binU', 'mag', 'count'].forEach(function (k) { out(k, '—'); });
+      ['gridSub', 'gapWSub', 'gapDSub', 'binSub', 'magSub', 'split'].forEach(function (k) { out(k, ''); });
+      document.getElementById('chips').innerHTML = '';
+      document.getElementById('active-note').textContent = 'Pieces appear once the drawer is measured.';
+      return;
+    }
+    var pl = L.plate;
+    document.getElementById('printer-link').textContent = L.bed.name + ' · ' + L.bed.width + ' × ' + L.bed.depth + ' mm';
+    document.getElementById('bed-legend').textContent = 'Printer bed ' + L.bed.width + ' × ' + L.bed.depth;
+    out('grid', L.nx + ' × ' + L.ny);
+    out('gridSub', (L.nx * L.ny) + ' squares · ' + ST.pair(L.nx * (L.pitch || [42, 42])[0], L.ny * (L.pitch || [42, 42])[1]) + (ST.pitchText(L.pitch) ? ' · ' + ST.pitchText(L.pitch) : ''));
+    // leftover = drawer minus the grid (filler + clearance); where it goes depends on Grid position
+    var gw = L.W - L.nx * (L.pitch || [42, 42])[0], gd = L.D - L.ny * (L.pitch || [42, 42])[1], fl = L.plate.filler || {}, al = L.align || { x: 'center', y: 'center' };
+    var fitted = L.grid === 'fit', whereW = fitted && fl.left + fl.right < 0.01 ? 'clearance only' : al.x === 'center' ? ST.pri(gw / 2) + ' per side' : 'all on the ' + (al.x === 'left' ? 'right' : 'left');
+    var whereD = fitted && fl.back + fl.front < 0.01 ? 'clearance only' : al.y === 'center' ? ST.pri(gd / 2) + ' per side' : 'all at the ' + (al.y === 'back' ? 'front' : 'back');
+    out('gapW', ST.pri(gw)); out('gapWSub', ST.sec(gw) + ' · ' + whereW + ' ' + ST.tol());
+    out('gapD', ST.pri(gd)); out('gapDSub', ST.sec(gd) + ' · ' + whereD + ' ' + ST.tol());
+    if (L.binU != null) {
+      out('binU', L.binU ? L.binU + 'u' : 'None');
+      out('binSub', L.binU ? ST.pri(L.bin_max_mm) + ' tall with lip · ' + ST.pri(pl.height) + ' plate' : 'Too shallow for bins on this plate');
+    } else { out('binU', '—'); out('binSub', 'Enter the height'); }
+    out('mag', pl.magnets ? String(pl.magnet_count) : 'None');
+    out('magSub', pl.magnets ? '6 × 2 mm discs' : (pl.magnets_supported ? 'Magnet holes off' : 'Lite plates have no magnet pockets'));
+    out('count', String(L.pieces.length)); out('split', L.cols.join('+') + ' × ' + L.rows.join('+'));
+    renderChips(plan ? plan.active() : null);
+  }
+  function renderChips(a) {
+    if (!L) return;
+    if (vp3) vp3.highlight(a);  // the same piece lights up in the 3D view
+    var box = document.getElementById('chips');
+    box.style.gridTemplateColumns = 'repeat(' + L.cols.length + ', 1fr)';
+    var rm = L.pieces.slice().sort(function (p, q) { return p.ri - q.ri || p.ci - q.ci; });
+    box.innerHTML = rm.map(function (p) {
+      return '<button class="st-chip' + (p.id === a ? ' is-active' : '') + '" type="button" data-chip="' + p.id + '" data-fit="' + (p.fits ? 'yes' : 'no') + '" aria-pressed="' + (p.id === a) + '"><span class="st-chip__top"><span class="st-id">' + p.id + '</span><span class="st-chip__meta">' + p.cx + '×' + p.cy + '</span></span><span class="st-chip__size">' + ST.pair(p.w, p.d) + '</span></button>';
+    }).join('');
+    var p = L.pieces.filter(function (x) { return x.id === a; })[0], bed = L.bed;
+    document.getElementById('active-note').textContent = p ? (p.fits
+      ? p.id + ' · ' + p.cx + '×' + p.cy + ' squares · fits the ' + bed.width + ' × ' + bed.depth + ' mm bed' + (p.bw !== bed.width ? ' (turned 90°)' : '') + ' with ' + Math.round(p.sx) + ' × ' + Math.round(p.sy) + ' mm to spare.'
+      : p.id + ' is larger than the bed. It needs another split.') : 'Hover or click a piece to check its bed fit.';
+  }
+  var chips = document.getElementById('chips');
+  chips.addEventListener('mouseover', function (e) { var c = e.target.closest('[data-chip]'); if (c && plan) plan.hover(c.dataset.chip); });
+  chips.addEventListener('mouseleave', function () { if (plan) plan.hover(null); });
+  chips.addEventListener('click', function (e) { var c = e.target.closest('[data-chip]'); if (c && plan) plan.pin(c.dataset.chip); });
+
+  document.addEventListener('st:dim', function (e) {
+    var k = e.detail.key, input = document.querySelector('.st-field[data-dim="' + k + '"] .st-field__input');
+    var ch = { input: {} };
+    if (e.detail.mm) {
+      vals[k] = e.detail.mm;
+      ch[KEYS[k]] = e.detail.mm; ch.input[k] = rawWithUnit(input.value, e.detail.mm);
+    } else if (e.detail.status === 'empty') {
+      vals[k] = null;
+      ch[KEYS[k]] = null; ch.input[k] = '';
+    } else {
+      return; // unreadable: keep showing the last good plan, save nothing
+    }
+    if (hydrating) return;
+    relayout();
+    save({ drawer: ch });
+  });
+  document.addEventListener('st:prefs', summary);
+
+  /* ---- baseplate options ---- */
+  var magBtn = document.getElementById('mag'), magRow = document.getElementById('mag-sub');
+  function showMag() {
+    var lite = plate === 'lite';
+    magBtn.setAttribute('aria-checked', String(mag && !lite));
+    magBtn.disabled = lite;
+    magRow.textContent = lite ? 'Not available on Lite plates' : '6 × 2 mm, 4 per square';
+  }
+  magBtn.addEventListener('click', function () { mag = !mag; showMag(); relayout(); save({ baseplate: { magnets: mag } }); });
+  var hints = {
+    standard: 'Thin floor with cut-outs and magnet pockets. The everyday choice.',
+    lite: 'Open frame with no floor. Prints fastest and uses the least filament.',
+    weighted: 'Thick floor with pockets for steel weights, so the plate stays put.'
+  };
+  var plateEl = document.getElementById('plate');
+  function showPlate() {
+    plateEl.querySelectorAll('[data-val]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.val.toLowerCase() === plate)); });
+    document.getElementById('plate-hint').textContent = hints[plate];
+    showMag();
+  }
+  plateEl.addEventListener('click', function (e) { var b = e.target.closest('[data-val]'); if (!b) return; plate = b.dataset.val.toLowerCase(); showPlate(); relayout(); save({ baseplate: { style: plate } }); });
+  showPlate();
+
+  /* ---- grid position: where the filler goes ---- */
+  function showAlign() {
+    document.querySelectorAll('#align-x [data-ax]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.ax === align.x)); });
+    document.querySelectorAll('#align-y [data-ay]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.ay === align.y)); });
+    var f = L && L.plate && L.plate.filler, words = { left: 'left wall', right: 'right wall', back: 'back wall', front: 'front' };
+    document.getElementById('align-hint').innerHTML = !f ? 'Measure the drawer to see the filler.' :
+      (align.x === 'center' && align.y === 'center' ? 'Filler split evenly: ' + ST.pri(f.left) + ' each side, ' + ST.pri(f.back) + ' front and back.'
+        : 'Bins sit tight against the ' + [align.x !== 'center' ? words[align.x] : '', align.y !== 'center' ? words[align.y] + (align.y === 'front' ? '' : '') : ''].filter(Boolean).join(' and ') + '.');
+  }
+  document.getElementById('align-x').addEventListener('click', function (e) { var b = e.target.closest('[data-ax]'); if (!b) return; align.x = b.dataset.ax; showAlign(); relayout(); save({ baseplate: { align: { x: align.x, y: align.y } } }); });
+  document.getElementById('align-y').addEventListener('click', function (e) { var b = e.target.closest('[data-ay]'); if (!b) return; align.y = b.dataset.ay; showAlign(); relayout(); save({ baseplate: { align: { x: align.x, y: align.y } } }); });
+  showAlign();
+
+  /* ---- grid size: standard 42 mm, or squares fitted to the drawer ---- */
+  function fitOf(length) {  // twin of layout.fit_pitch: the count of squares closest to 42 mm (36–48 mm)
+    var best = null, f = Math.floor(length / 42);
+    [Math.max(1, f), Math.max(1, f + 1)].forEach(function (n) { var p = length / n; if (p >= 36 && p <= 48 && (!best || Math.abs(p - 42) < Math.abs(best[1] - 42))) best = [n, p]; });
+    return best || [Math.max(1, f), 42];
+  }
+  function showGrid() {
+    document.querySelectorAll('#grid-mode [data-grid]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.grid === gridMode)); });
+    document.getElementById('align-field').hidden = gridMode === 'fit';
+    var hint = document.getElementById('grid-hint');
+    if (!L) { hint.textContent = ''; return; }
+    if (gridMode === 'fit') {
+      hint.innerHTML = L.nx + ' × ' + L.ny + ' squares of <b>' + ST.num((L.pitch || [42, 42])[0]) + ' × ' + ST.num((L.pitch || [42, 42])[1]) + ' mm</b>, no filler border. Bins for 42 mm squares won\u2019t fit this baseplate.';
+      return;
+    }
+    var fx = fitOf(L.plate.width), fy = fitOf(L.plate.depth), side = Math.max(L.plate.filler_x, L.plate.filler_y);
+    hint.innerHTML = side > 4 ? 'Fit to drawer would make ' + fx[0] + ' × ' + fy[0] + ' squares of ' + ST.num(fx[1]) + ' × ' + ST.num(fy[1]) + ' mm and remove the ' + ST.pri(side) + ' filler border.'
+      : 'Standard Gridfinity squares; the filler border is small.';
+  }
+  document.getElementById('grid-mode').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-grid]'); if (!b || b.dataset.grid === gridMode) return;
+    gridMode = b.dataset.grid; showGrid(); relayout(); save({ baseplate: { grid: gridMode } });
+    ST.toast(gridMode === 'fit'
+      ? 'Squares now fit this drawer. Bins already printed for 42 mm squares won\u2019t fit the new baseplate; the Print List shows what to export again.'
+      : 'Back to standard 42 mm squares. Bins printed for the fitted grid won\u2019t fit; the Print List shows what to export again.');
+  });
+  showGrid();
+
+  /* ---- export ---- */
+  var exporting = false;
+  document.getElementById('export').addEventListener('click', function () {
+    if (!L || exporting) return;
+    var btn = this, label = document.getElementById('export-label');
+    exporting = true; btn.disabled = true; label.textContent = 'Rendering ' + L.pieces.length + ' pieces…';
+    flushNow().then(function () { return ST.api('POST', 'projects/' + pid + '/export/baseplate'); }).then(function (r) {
+      var made = r.rendered ? r.rendered + ' rendered in ' + r.seconds.toFixed(1) + ' s' : 'all unchanged';
+      var t = ST.toast(r.files.length + ' baseplate STLs saved (' + made + ').', 'success', 'Show folder');
+      var act = t && t.querySelector('.st-toast__action');
+      if (act) act.addEventListener('click', function () { ST.reveal(pid, 'exports'); });
+      r.warnings.forEach(function (w) { ST.toast(ST.esc(w), 'error'); });
+    }, function (e) {
+      ST.toast('Export failed: ' + ST.esc(e.message), 'error');
+    }).then(function () {
+      exporting = false; label.textContent = 'Export baseplate'; summary(); checkExports();
+    });
+  });
+
+  /* ---- fill the fields from the saved drawer ---- */
+  ['w', 'd', 'h'].forEach(function (k) {
+    var input = document.querySelector('.st-field[data-dim="' + k + '"] .st-field__input');
+    var raw = dr.input && dr.input[k], mm = dr[KEYS[k]];
+    input.value = raw || (mm ? ST.fmtText(mm, ST.P.unit, ST.P.den) : '');
+    input.dispatchEvent(new Event('blur'));
+  });
+  hydrating = false;
+  /* ---- exported pieces that no longer match the plan (drawer, plate options or printer bed changed) ---- */
+  function checkExports() {
+    ST.api('GET', 'projects/' + pid + '/parts').then(function (r) {
+      var plates = r.parts.filter(function (p) { return p.kind === 'baseplate'; }), stale = plates.filter(function (p) { return p.status === 'stale'; });
+      var box = document.getElementById('plate-issue');
+      box.hidden = !stale.length;
+      if (!stale.length) { box.innerHTML = ''; return; }
+      box.innerHTML = '<article class="st-issue"><div class="st-issue__head"><span class="st-issue__num">!</span><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-info"/></svg><h3 class="st-issue__title">Exported baseplate pieces are out of date</h3></div>' +
+        '<p class="st-issue__body">' + stale.map(function (p) { return p.id; }).join(', ') + (stale.length > 1 ? ' were' : ' was') + ' exported before the drawer, the plate options or the printer bed changed, so ' + (stale.length > 1 ? 'they no longer match' : 'it no longer matches') + ' this plan. Export again before printing.</p>' +
+        '<div class="st-issue__actions"><button class="st-btn st-btn--sm" type="button" data-reexport>Export baseplate again</button></div></article>';
+    }, function () { /* offline banner already covers this */ });
+  }
+  document.getElementById('plate-issue').addEventListener('click', function (e) { if (e.target.closest('[data-reexport]')) document.getElementById('export').click(); });
+  checkExports();
+
+  setMode(mode);
+});
+</script>
+</body>
+</html>

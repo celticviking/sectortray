@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · SectorTray</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="app.css">
+<script>/* apply saved skin/theme before first paint */(function(){var d=document.documentElement,s=localStorage;d.dataset.skin=s.getItem('st.skin')||'toolchest';var t=s.getItem('st.theme')||'dark';if(t!=='system')d.dataset.theme=t;})();</script>
+<script src="js/st.js" defer></script>
+<script src="js/shell.js" defer></script>
+</head>
+<body>
+<div class="st-app">
+<header class="st-header">
+  <a class="st-brand" href="projects.html" aria-label="SectorTray home"><span class="st-brand__mark"></span><span class="st-brand__name">SECTORTRAY</span></a>
+  
+  <nav class="st-tabs" aria-label="Sections"><a class="st-tab" href="projects.html">Projects</a><a class="st-tab" href="planner.html">Planner</a><a class="st-tab" href="bin-builder.html">Bins</a><a class="st-tab" href="layout-editor.html">Layout</a><a class="st-tab" href="print-list.html">Print List</a><a class="st-tab" href="settings.html" aria-current="page">Settings</a></nav>
+  <div class="st-header__tools">
+    <div class="st-seg" role="group" aria-label="Primary unit">
+      <button class="st-seg__btn" type="button" data-st-set-unit="in" aria-pressed="true">in</button>
+      <button class="st-seg__btn" type="button" data-st-set-unit="mm" aria-pressed="false">mm</button>
+    </div>
+    <label class="st-header__label"><span>Skin</span>
+      <select class="st-select" data-st-skin aria-label="Skin">
+        <option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option>
+      </select>
+    </label>
+    <div class="st-seg st-seg--text" role="group" aria-label="Light or dark" data-theme-mode="binary">
+      <button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button>
+      <button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button>
+    </div>
+  </div>
+</header>
+<main class="st-main">
+<div class="st-layout st-layout--settings" style="height:auto">
+  <nav class="st-panel" aria-label="Settings sections" id="snav" style="align-self:start;position:sticky;top:0">
+    <ul class="st-list">
+      <li><a class="st-list__item" href="#units" aria-current="page"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-ruler"/></svg> Units</a></li>
+      <li><a class="st-list__item" href="#printer"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-cube"/></svg> Printer</a></li>
+      <li><a class="st-list__item" href="#new-bins"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-bin"/></svg> New bins</a></li>
+      <li><a class="st-list__item" href="#filaments"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-layers"/></svg> Filaments</a></li>
+      <li><a class="st-list__item" href="#appearance"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-gear"/></svg> Appearance</a></li>
+      <li><a class="st-list__item" href="#about"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-info"/></svg> About</a></li>
+    </ul>
+  </nav>
+  <div class="st-col">
+    <section class="st-panel" id="units">
+      <div class="st-panel__head"><span class="st-panel__num">1</span><h2 class="st-tag">Units</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Default unit </span><span class="st-row__sub">Shown first everywhere. The other unit always appears beside it.</span></div><div class="st-seg" role="group" aria-label="Default unit"><button class="st-seg__btn" type="button" data-st-set-unit="in">Inches</button><button class="st-seg__btn" type="button" data-st-set-unit="mm">Millimeters</button></div></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Fraction precision <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Inch values are rounded to the nearest fraction you pick here. It only changes how numbers are shown. What you typed is kept exactly.</span></span></span><span class="st-row__sub">How finely inch values are shown</span></div><div class="st-seg" role="group" aria-label="Fraction precision"><button class="st-seg__btn" type="button" data-st-set-den="8">1/8</button><button class="st-seg__btn" type="button" data-st-set-den="16">1/16</button><button class="st-seg__btn" type="button" data-st-set-den="32">1/32</button></div></div>
+        <div class="st-kv">
+          <span>Example</span><span>365.1 mm reads as <b><span data-mm="365.1"></span></b> · 33.3 mm as <b><span data-mm="33.3"></span></b></span>
+          <span>Tape tolerance</span><span><span data-tol></span> &nbsp;<span class="st-muted">shown next to measured values</span></span>
+        </div>
+      </div>
+    </section>
+    <section class="st-panel" id="printer">
+      <div class="st-panel__head"><span class="st-panel__num">2</span><h2 class="st-tag">Printer</h2><span class="st-panel__aside"><span class="st-saved" data-saved aria-live="polite"></span></span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-field"><label class="st-field__label" for="printer-model">Printer model<span class="st-field__sub">fills in the bed size; sizes are from each maker’s specs</span></label><select class="st-select" id="printer-model"></select></div>
+        <div class="st-field"><label class="st-field__label" for="printer-name">Printer name<span class="st-field__sub">shown on the plan’s bed outline</span></label><input class="st-input" id="printer-name" maxlength="40" autocomplete="off"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+          <div class="st-field st-field--compact" data-dim="bw" data-min="60">
+  <label class="st-field__label" for="dim-bw">Bed width<span class="st-field__sub">X</span></label>
+  <input class="st-field__input" id="dim-bw" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+          <div class="st-field st-field--compact" data-dim="bd" data-min="60">
+  <label class="st-field__label" for="dim-bd">Bed depth<span class="st-field__sub">Y</span></label>
+  <input class="st-field__input" id="dim-bd" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+          <div class="st-field st-field--compact" data-dim="bh" data-min="20">
+  <label class="st-field__label" for="dim-bh">Max height<span class="st-field__sub">Z</span></label>
+  <input class="st-field__input" id="dim-bh" autocomplete="off" spellcheck="false">
+  <div class="st-field__readout" aria-live="polite"><span class="st-field__status"></span><span class="st-field__primary"></span><span class="st-field__secondary"></span></div>
+  <p class="st-field__msg"></p>
+</div>
+        </div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Fit clearance <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">How much smaller than the drawer the whole baseplate is printed, per direction. <b>1 mm</b> leaves 0.5 mm each side so the plate drops in even if the tape reading was a little generous.</span></span></span><span class="st-row__sub">Taken off the drawer size, per direction</span></div><span class="st-bin-edit__row"><input class="st-input st-num" id="fit-clearance" type="number" min="0" max="10" step="0.1" style="width:90px"> <span class="st-muted">mm</span></span></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Headroom <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Space left between the tallest bin and the top of the drawer, so the drawer closes without scraping.</span></span></span><span class="st-row__sub">Kept free under the drawer top</span></div><span class="st-bin-edit__row"><input class="st-input st-num" id="fit-headroom" type="number" min="0" max="50" step="0.5" style="width:90px"> <span class="st-muted">mm</span></span></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Joint clearance <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">Gap left on each side of the <b>snap clips</b> and <b>bow-tie keys</b> that join a bin printed in pieces. Too tight to push together: raise it a little (0.05 mm at a time). Loose: lower it. Print the joint test to check.</span></span></span><span class="st-row__sub">For bins printed in pieces, per side</span></div><span class="st-bin-edit__row"><input class="st-input st-num" id="fit-joint" type="number" min="0" max="0.6" step="0.05" style="width:90px"> <span class="st-muted">mm</span></span></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Joint test print</span><span class="st-row__sub">Two small 2 × 1 bins cut in half: one with snap clips, one with a bow-tie key. Under an hour to print. Clips are tested on a Prusa CORE One; keys are still experimental. Try this before printing a big bin in pieces.</span></div><span class="st-btn-row"><button class="st-btn st-btn--sm" type="button" id="joint-test-open">Open in <span data-slicer-name>PrusaSlicer</span></button><button class="st-btn st-btn--sm st-btn--ghost" type="button" id="joint-test-folder">Show files</button></span></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Slicer <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">The program <b>Open in…</b> sends your parts to, as a 3MF file with every part named and laid out on the bed. Only PrusaSlicer has been tried for real; it can also hold several beds in one project. The others should open the same file; if parts land off the bed, use that slicer's Arrange.</span></span></span><span class="st-row__sub" id="slicer-note"></span></div><select class="st-select" id="slicer-kind" aria-label="Slicer"></select></div>
+        <div class="st-field"><span class="st-field__label"><span data-slicer-name>PrusaSlicer</span> location <span class="st-field__sub" id="slicer-status"></span></span><input class="st-input st-mono" id="slicer-path" aria-label="Slicer location" placeholder="Found automatically" spellcheck="false"></div>
+        <div class="st-btn-row"><button class="st-btn st-btn--ghost" type="button" id="reset-printer">Reset to CORE One</button></div>
+      </div>
+    </section>
+    <section class="st-panel" id="new-bins">
+      <div class="st-panel__head"><span class="st-panel__num">3</span><h2 class="st-tag">New bins</h2><span class="st-panel__aside"><span class="st-saved" data-saved aria-live="polite"></span> Starting point for bins you add</span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Label tab <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">A little shelf along the back wall for a written or printed label. Useful in a screw drawer; usually not needed for kitchen or bedroom drawers. A drawer can turn tabs on for all its bins (Bins page), and each bin can still change its own.</span></span></span><span class="st-row__sub">Off: new bins have no label tab unless the drawer says so</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Label tab on new bins" id="nb-tab"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Stacking lip <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">A small rim around the top so another bin can sit on top. Off saves about 3.5 mm of height; bins without it can't be stacked.</span></span></span><span class="st-row__sub">Off: new bins have a plain top edge</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Stacking lip on new bins" data-nb="lip"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Finger scoop</span><span class="st-row__sub">Curved front inside, for sliding small things out</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Finger scoop on new bins" data-nb="scoop"></button></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Print too-big bins in pieces <span class="st-hint"><button class="st-hint__btn" type="button" aria-label="What does this mean?" aria-expanded="false">?</button><span class="st-hint__pop" role="tooltip">When a bin is bigger than your printer bed, it's set to print in pieces that join together (snap clips) as soon as it gets too big. You can still change or turn that off on the Bins page.</span></span></span><span class="st-row__sub">Automatically, as soon as a bin is too big for the bed</span></div><button class="st-switch" type="button" role="switch" aria-checked="false" aria-label="Print too-big bins in pieces automatically" data-nb="auto_split"></button></div>
+      </div>
+    </section>
+    <section class="st-panel" id="filaments">
+      <div class="st-panel__head"><span class="st-panel__num">4</span><h2 class="st-tag">Filaments</h2><span class="st-panel__aside"><span class="st-saved" data-saved aria-live="polite"></span> Used to tint the 3D preview and on the print list</span><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <ul class="st-list" id="filament-list"></ul>
+      <div class="st-panel__body"><button class="st-btn st-btn--ghost" type="button" style="justify-content:flex-start" id="add-filament"><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> Add filament</button><p class="st-row__sub">The first filament is the default for new parts. Click a swatch to pick its color.</p></div>
+    </section>
+    <section class="st-panel" id="appearance">
+      <div class="st-panel__head"><span class="st-panel__num">5</span><h2 class="st-tag">Appearance</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Skin </span><span class="st-row__sub">Machinist: paper catalog. Drafting: drawing sheet. Toolchest: powder-coat and label tape.</span></div><select class="st-select" data-st-skin aria-label="Skin"><option value="machinist">Machinist</option><option value="drafting">Drafting</option><option value="toolchest">Toolchest</option></select></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Text size </span><span class="st-row__sub">Makes everything bigger, like zooming in. Ctrl + mouse wheel works too.</span></div><div class="st-seg" role="group" aria-label="Text size" id="text-size"><button class="st-seg__btn" type="button" data-scale="1">Normal</button><button class="st-seg__btn" type="button" data-scale="1.15">Large</button><button class="st-seg__btn" type="button" data-scale="1.3">Larger</button></div></div>
+        <div class="st-row"><div class="st-row__label"><span class="st-row__title">Theme </span><span class="st-row__sub">System follows your Windows light/dark setting</span></div><div class="st-seg" role="group" aria-label="Theme"><button class="st-seg__btn" type="button" data-st-set-theme="system">System</button><button class="st-seg__btn" type="button" data-st-set-theme="light">Light</button><button class="st-seg__btn" type="button" data-st-set-theme="dark">Dark</button></div></div>
+      </div>
+    </section>
+    <section class="st-panel" id="about">
+      <div class="st-panel__head"><span class="st-panel__num">6</span><h2 class="st-tag">About</h2><span class="st-panel__slot" aria-hidden="true"></span></div>
+      <div class="st-panel__body">
+        <div class="st-kv" id="about-kv">
+          <span>SectorTray</span><span class="st-mono" data-about="app">…</span>
+          <span>License</span><span>Free software under the GNU GPL v3.0 or later · <a href="https://github.com/celticviking/sectortray" target="_blank" rel="noopener">source code</a></span>
+          <span>Gridfinity</span><span>The open storage system by Zack Freedman (MIT) · <a href="https://gridfinity.xyz/" target="_blank" rel="noopener">gridfinity.xyz</a></span>
+          <span>OpenSCAD</span><span class="st-mono" data-about="openscad">…</span>
+          <span>Gridfinity libraries</span><span class="st-mono" data-about="libs">…</span>
+          <span>3D preview</span><span class="st-mono">three.js 0.186.1 · bundled</span>
+          <span>Slicer</span><span class="st-mono" data-about="slicer">…</span>
+          <span>Fonts</span><span>Archivo, Barlow Semi Condensed, Red Hat Mono, Chivo, Chivo Mono · SIL Open Font License</span>
+          <span>Saved drawers</span><span><span data-about="data">…</span> <button class="st-btn st-btn--sm" type="button" id="data-move" hidden>Move…</button><span class="st-row__sub st-warn-text" id="data-cloud" hidden></span></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
+</div>
+<script>
+document.addEventListener('st:shell', function () {
+  var S = null, hydrating = true;
+  var CORE_ONE = { name: 'Prusa CORE One', bed_w: 250, bed_d: 220, max_h: 270 };
+
+  /* ---- saving (debounced, one PATCH per burst) ---- */
+  var pending = {}, timer = null;
+  function savedText(t, err) { document.querySelectorAll('[data-saved]').forEach(function (el) { el.textContent = t; el.classList.toggle('is-error', !!err); }); }
+  function save(changes) {
+    if (hydrating) return;
+    Object.keys(changes).forEach(function (k) { pending[k] = Array.isArray(changes[k]) || typeof changes[k] !== 'object' || changes[k] === null ? changes[k] : Object.assign(pending[k] || {}, changes[k]); });
+    savedText('Saving'); clearTimeout(timer); timer = setTimeout(flush, 450);
+  }
+  ST.onSaveNow(function () { if (!timer) return; clearTimeout(timer); return flush(); });
+  function flush() {
+    var body = pending; pending = {}; timer = null;
+    return ST.api('PATCH', 'settings', body).then(function (r) { S = r; savedText('Saved'); showSlicer(); },
+      function (e) { savedText('Not saved', true); ST.toast(ST.esc(e.message), 'error'); });
+  }
+  window.addEventListener('pagehide', function () {
+    if (!timer) return;
+    fetch('/api/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending), keepalive: true });
+  });
+
+  /* ---- printer ---- */
+  var KEY = { bw: 'bed_w', bd: 'bed_d', bh: 'max_h' };
+  var model = document.getElementById('printer-model');
+  model.innerHTML = ST.PRINTERS.map(function (x, i) { return '<option value="' + i + '">' + ST.esc(x.name) + ' \u00b7 ' + x.bed_w + ' \u00d7 ' + x.bed_d + ' \u00d7 ' + x.max_h + ' mm</option>'; }).join('') +
+    '<option value="custom">Other printer (type its name and bed size below)</option>';
+  function syncModel() { var m = ST.printerPreset(S.printer); model.value = m ? String(ST.PRINTERS.indexOf(m)) : 'custom'; }
+  model.addEventListener('change', function () {
+    if (model.value === 'custom') { var n = document.getElementById('printer-name'); n.focus(); n.select(); return; }
+    var m = ST.PRINTERS[+model.value];
+    S.printer = Object.assign({}, m); fillPrinter(); save({ printer: Object.assign({}, m) });
+  });
+  function fillPrinter() {
+    hydrating = true;
+    syncModel();
+    document.getElementById('printer-name').value = S.printer.name;
+    Object.keys(KEY).forEach(function (k) {
+      var input = document.getElementById('dim-' + k);
+      input.value = ST.num(S.printer[KEY[k]]) + ' mm';
+      input.dispatchEvent(new Event('blur'));
+    });
+    document.getElementById('fit-clearance').value = S.fit.clearance_mm;
+    document.getElementById('fit-headroom').value = S.fit.headroom_mm;
+    document.getElementById('fit-joint').value = S.fit.joint_mm;
+    document.getElementById('nb-tab').setAttribute('aria-checked', String(!!(S.new_bins && S.new_bins.label_tab)));
+    document.querySelectorAll('[data-nb]').forEach(function (b) { b.setAttribute('aria-checked', String(!!(S.new_bins && S.new_bins[b.dataset.nb]))); });
+    document.getElementById('slicer-path').value = S.slicer_path || '';
+    showSlicer();
+    hydrating = false;
+  }
+  document.addEventListener('st:dim', function (e) {
+    if (!KEY[e.detail.key] || !e.detail.mm) return;
+    var p = {}; p[KEY[e.detail.key]] = Math.round(e.detail.mm * 10) / 10;
+    S.printer[KEY[e.detail.key]] = p[KEY[e.detail.key]]; if (!hydrating) syncModel();
+    save({ printer: p });
+  });
+  document.getElementById('printer-name').addEventListener('input', function () { var v = this.value.trim(); if (v) { S.printer.name = v; syncModel(); save({ printer: { name: v } }); } });
+  [['fit-clearance', 'clearance_mm'], ['fit-headroom', 'headroom_mm'], ['fit-joint', 'joint_mm']].forEach(function (pair) {
+    document.getElementById(pair[0]).addEventListener('change', function () {
+      var v = parseFloat(this.value); if (isNaN(v)) return;
+      var f = {}; f[pair[1]] = v; save({ fit: f });
+    });
+  });
+  function syncScale() { document.querySelectorAll('#text-size [data-scale]').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.dataset.scale === ST.textScale())); }); }
+  syncScale();
+  document.getElementById('text-size').addEventListener('click', function (e) { var b = e.target.closest('[data-scale]'); if (b) { ST.setTextScale(+b.dataset.scale); syncScale(); } });
+  document.querySelectorAll('[data-nb]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var v = b.getAttribute('aria-checked') !== 'true', ch = {}; ch[b.dataset.nb] = v;
+      b.setAttribute('aria-checked', String(v)); save({ new_bins: ch });
+    });
+  });
+  document.getElementById('nb-tab').addEventListener('click', function () {
+    var v = this.getAttribute('aria-checked') !== 'true';
+    this.setAttribute('aria-checked', String(v));
+    save({ new_bins: { label_tab: v } });
+  });
+  function jointTest(how, btn) {
+    btn.disabled = true;
+    var desktop = !!(window.chrome && window.chrome.webview), body = {};
+    if (how === 'open' || !desktop) body[how] = true;  // in the desktop window, the window shows the folder itself
+    ST.api('POST', 'joint-test', body).then(function (r) {
+      if (how === 'reveal' && desktop) ST.revealPath(r.folder);
+      ST.toast(how === 'open' ? 'Opening the joint test (' + r.files.length + ' parts, ' + r.gap + ' mm clearance) in ' + ST.esc(ST.slicer.name) + '…' : 'Joint test files are in ' + ST.esc(r.folder) + '.', 'success');
+    }, function (e) { ST.toast(ST.esc(e.message), 'error'); }).then(function () { btn.disabled = false; });
+  }
+  document.getElementById('joint-test-open').addEventListener('click', function () { jointTest('open', this); });
+  document.getElementById('joint-test-folder').addEventListener('click', function () { jointTest('reveal', this); });
+  document.getElementById('reset-printer').addEventListener('click', function () {
+    S.printer = Object.assign({}, CORE_ONE); fillPrinter(); save({ printer: CORE_ONE });
+  });
+  var EXAMPLE = { prusaslicer: 'C:\\Program Files\\Prusa3D\\PrusaSlicer\\prusa-slicer.exe', bambu: 'C:\\Program Files\\Bambu Studio\\bambu-studio.exe',
+    orca: 'C:\\Program Files\\OrcaSlicer\\orca-slicer.exe', cura: 'C:\\Program Files\\UltiMaker Cura 5.9.0\\UltiMaker-Cura.exe' };
+  function showSlicer() {
+    var el = document.getElementById('slicer-status'), sl = S.slicer || {};
+    ST.setSlicer(sl);
+    var kind = document.getElementById('slicer-kind');
+    kind.innerHTML = (sl.all || []).map(function (x) {
+      return '<option value="' + x.kind + '"' + (x.kind === sl.kind ? ' selected' : '') + '>' + ST.esc(x.name) + (x.found ? '' : ' \u00b7 not found') + (x.tested ? '' : ' \u00b7 untested') + '</option>';
+    }).join('');
+    document.getElementById('slicer-note').textContent = sl.tested ? 'Opens parts as a 3MF project, several beds at once when a drawer needs them'
+      : 'Not tried with ' + sl.name + ' yet: parts open as a 3MF file; for more than one bed, use its Arrange';
+    el.textContent = sl.found ? 'Found' + (sl.version ? ' \u00b7 version ' + sl.version : '') : 'Not found';
+    el.style.color = sl.found ? 'var(--st-color-ok)' : 'var(--st-color-error)';
+    var input = document.getElementById('slicer-path');
+    input.value = S.slicer_path || '';
+    input.placeholder = sl.found && !S.slicer_path ? sl.path + '  (found automatically)' : EXAMPLE[sl.kind] || '';
+    var about = document.querySelector('[data-about="slicer"]');
+    if (about) about.textContent = sl.found ? sl.name + ' ' + (sl.version || '') + ' \u00b7 ' + sl.path : sl.name + ' \u00b7 not found';
+  }
+  document.getElementById('slicer-path').addEventListener('change', function () { save({ slicer_path: this.value.trim() || null }); });
+  document.getElementById('slicer-kind').addEventListener('change', function () { save({ slicer_kind: this.value }); clearTimeout(timer); flush(); });
+
+  /* ---- filaments ---- */
+  var list = document.getElementById('filament-list');
+  function renderFilaments() {
+    list.innerHTML = S.filaments.map(function (f, i) {
+      return '<li class="st-list__item" style="cursor:default" data-i="' + i + '">' +
+        '<label class="st-swatch-input" title="Pick a color" style="background:' + f.color + '"><input type="color" value="' + f.color + '" aria-label="Color of ' + ST.esc(f.name) + '"></label>' +
+        '<span class="st-list__main" style="flex:1"><input class="st-input" value="' + ST.esc(f.name) + '" maxlength="40" aria-label="Filament name" style="height:32px" data-name></span>' +
+        '<select class="st-select" aria-label="Material" data-material><option' + (f.material === 'PETG' ? ' selected' : '') + '>PETG</option><option' + (f.material === 'PLA' ? ' selected' : '') + '>PLA</option></select>' +
+        '<span class="st-row__sub" style="width:72px">' + (i === 0 ? 'Default' : '') + '</span>' +
+        '<button class="st-btn st-btn--sm st-btn--ghost" type="button" data-remove aria-label="Remove ' + ST.esc(f.name) + '"' + (S.filaments.length < 2 ? ' disabled' : '') + '><svg class="st-icon" aria-hidden="true"><use href="icons.svg#i-trash"/></svg></button></li>';
+    }).join('');
+  }
+  function row(e) { var li = e.target.closest('[data-i]'); return li ? S.filaments[+li.dataset.i] : null; }
+  list.addEventListener('input', function (e) {
+    var f = row(e); if (!f) return;
+    if (e.target.matches('[type=color]')) { f.color = e.target.value; e.target.parentNode.style.background = f.color; }
+    else if (e.target.matches('[data-name]')) { var v = e.target.value.trim(); if (!v) return; f.name = v; }
+    else return;
+    save({ filaments: S.filaments });
+  });
+  list.addEventListener('change', function (e) { var f = row(e); if (f && e.target.matches('[data-material]')) { f.material = e.target.value; save({ filaments: S.filaments }); } });
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-remove]'); if (!b) return;
+    var f = row(e);
+    ST.dialog({ title: 'Remove filament', text: 'Remove <b>' + ST.esc(f.name) + '</b>? Parts that used it switch to the default filament.', confirm: 'Remove', danger: true })
+      .then(function (ok) { if (!ok) return; S.filaments.splice(S.filaments.indexOf(f), 1); renderFilaments(); save({ filaments: S.filaments }); });
+  });
+  document.getElementById('add-filament').addEventListener('click', function () {
+    S.filaments.push({ name: 'New filament', material: 'PLA', color: '#8a8f96' });
+    renderFilaments(); save({ filaments: S.filaments });
+    var inputs = list.querySelectorAll('[data-name]'), last = inputs[inputs.length - 1]; last.focus(); last.select();
+  });
+
+  /* ---- about ---- */
+  ST.api('GET', 'health').then(function (h) {
+    var put = function (k, t) { var el = document.querySelector('[data-about="' + k + '"]'); if (el) el.textContent = t; };
+    put('app', h.version + (h.dev ? ' \u00b7 developer copy' : ''));
+    put('openscad', h.openscad.present ? (h.openscad.version || 'found') + ' \u00b7 bundled (Manifold)' : (h.dev ? 'missing \u2014 run tools/setup.py' : 'missing \u2014 reinstall SectorTray'));
+    put('libs', h.libraries.map(function (l) { return l.name + ' ' + (l.commit || '?') + ' (' + l.license + ')'; }).join(' \u00b7 '));
+    put('data', h.data_dir + '. Nothing leaves this PC.');
+    dataDir = h.data_dir;
+    document.getElementById('data-move').hidden = !h.data_movable;
+    var cloud = document.getElementById('data-cloud');
+    cloud.hidden = !h.data_cloud;
+    cloud.textContent = h.data_cloud ? 'This folder is inside ' + h.data_cloud + ', so your drawers are copied to the cloud. Use Move\u2026 to keep them on this PC only.' : '';
+  });
+
+  /* ---- move the saved drawers (Settings → About → Saved drawers) ----
+     In the desktop window Windows' folder picker chooses; in a browser you type the folder. */
+  var dataDir = null, wv = window.chrome && window.chrome.webview;
+  function moveTo(path) {
+    if (!path) return;
+    ST.dialog({
+      title: 'Move your drawers',
+      html: '<p>Move every saved drawer, its exported files and your settings from<br><b>' + ST.esc(dataDir) + '</b><br>to<br><b>' + ST.esc(path) + '</b>?</p><p class="st-row__sub">Don\u2019t export or print-list anything until it\u2019s done. If that folder is already a SectorTray folder, SectorTray switches to it and leaves the current one as it is.</p>',
+      confirm: 'Move',
+      onConfirm: function () { return ST.api('POST', 'data-folder', { path: path }); }
+    }).then(function (r) {
+      if (!r) return;
+      ST.toast(r.mode === 'use' ? 'Now using the drawers in ' + ST.esc(r.data_dir) + '.' : 'Moved. Your drawers are now in ' + ST.esc(r.data_dir) + '.', 'success');
+      setTimeout(function () { location.reload(); }, 1200);
+    });
+  }
+  /* The desktop window answers 'pickfolder' with {type:'folder-open'} straight away, then {type:'folder', path}.
+     No answer (a window too old to know the message) → type the folder instead, so the button never does nothing. */
+  var pickWait = null;
+  if (wv) wv.addEventListener('message', function (e) {
+    var t = e.data && e.data.type;
+    if (t === 'folder-open' || t === 'folder') { clearTimeout(pickWait); pickWait = null; }
+    if (t === 'folder') moveTo(e.data.path);
+  });
+  function typeFolder() {
+    ST.dialog({
+      title: 'Move your drawers',
+      fields: [{ name: 'path', label: 'New folder (full location, e.g. D:\\SectorTray)', value: '' }],
+      confirm: 'Next'
+    }).then(function (v) { if (v && v.path) moveTo(v.path.trim()); });
+  }
+  document.getElementById('data-move').addEventListener('click', function () {
+    if (!wv) { typeFolder(); return; }
+    if (pickWait) return;  // already asked
+    wv.postMessage('pickfolder');
+    pickWait = setTimeout(function () { pickWait = null; typeFolder(); }, 1500);
+  });
+
+  ST.api('GET', 'settings').then(function (r) { S = r; fillPrinter(); renderFilaments(); });
+
+  /* Section list: highlight the section in view (or the one just clicked) */
+  (function () {
+    var main = document.querySelector('.st-main'), links = [].slice.call(document.querySelectorAll('#snav a[href^="#"]'));
+    var secs = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); });
+    var hold = 0;
+    function mark(i) { links.forEach(function (a, j) { if (j === i) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }); }
+    function spy() {
+      if (performance.now() < hold) return;
+      var top = main.getBoundingClientRect().top + 40, cur = 0;
+      secs.forEach(function (s, i) { if (s && s.getBoundingClientRect().top <= top) cur = i; });
+      if (main.scrollTop + main.clientHeight >= main.scrollHeight - 2) {  // at the bottom: the last section that shows
+        var bottom = main.getBoundingClientRect().bottom;
+        for (var i = secs.length - 1; i > cur; i--) if (secs[i] && secs[i].getBoundingClientRect().top < bottom - 60) { cur = i; break; }
+      }
+      mark(cur);
+    }
+    links.forEach(function (a, i) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!secs[i]) return;
+        hold = performance.now() + 600; mark(i);
+        secs[i].scrollIntoView({ block: 'start' });
+      });
+    });
+    main.addEventListener('scroll', spy, { passive: true });
+    main.addEventListener('wheel', function () { hold = 0; }, { passive: true });
+    var h = location.hash && document.getElementById(location.hash.slice(1));
+    if (h) h.scrollIntoView({ block: 'start' }); else spy();
+  })();
+});
+</script>
+</body>
+</html>

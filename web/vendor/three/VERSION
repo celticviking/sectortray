@@ -1,0 +1,5 @@
+three 0.186.1 (MIT)
+https://registry.npmjs.org/three/-/three-0.186.1.tgz
+sha512-blFeqb49wRCSGUGj7gtpfnSGHy2lwDk94RhUmS1c/hTby70kvChbWpkJ4Pm1390LqzzvTmzgXKHPEafJwCb8jA==
+Files kept: build/three.core.js, build/three.module.js, examples/jsm/controls/OrbitControls.js,
+examples/jsm/loaders/STLLoader.js, LICENSE. Addons import from 'three' -> resolved by an import map.
